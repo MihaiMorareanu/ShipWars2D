@@ -1,0 +1,11 @@
+extends ../layout
+
+block main-content
+	.first-grid
+		table
+			- for(var idx1 = 0; idx1 < 10; idx1++) {
+				tr
+				- for(var idx2 = 0; idx2 < 10; idx2++) {
+					td &nbsp;
+				- }
+			- }

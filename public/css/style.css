@@ -1,0 +1,38 @@
+body {
+	background-color: #5E5D5D;
+}
+
+body * {
+	padding: 0px;
+	margin: 0px;
+	border: 0px;
+	text-decoration: none
+}
+
+a:link, a:visited, a:hover, a:active {
+	color: #000;
+}
+
+.main-container {
+	position: relative;
+	padding: 5px;
+	background-color: #7090E5;
+	top: 100px;
+	width: 900px;
+	margin: auto;
+}
+
+/*First-Grid Container*/
+.first-grid table {
+	empty-cells: show;
+}
+
+.first-grid table, .first-grid table tr, .first-grid table tr td { 
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+.first-grid table tr td {
+	width: 60px;
+	height: 60px;
+}
