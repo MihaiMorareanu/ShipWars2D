@@ -1,0 +1,120 @@
+extends ../layout
+
+block head-content
+	script.
+		function dragStart_handler(event, shipSize) {
+		 	console.log("<configBoard - dragStart_handler> Start Draging");
+		 	var draggedElem = event.target;
+			draggedElem.addEventListener('dragend', dragEnd_handler, false);
+
+		 	draggedElem.style.opacity = 0.5;
+
+		 	var startDragProp = {};
+		 	startDragProp.orientation = "horizontal";
+		 	startDragProp.shipSize = shipSize;
+		 	event.dataTransfer.setData("text/plain", JSON.stringify(startDragProp));
+		}
+
+		function onDragOver_handler(event){
+			event.preventDefault();
+			
+			var draggedElem = event.dataTransfer.getData("text/plain");
+			draggedElem = JSON.parse(draggedElem);
+
+			var destElem = event.target;
+			destElem.style.border = "3px solid red";
+		}
+
+		function onDrop_handler(event){
+			event.preventDefault;
+			
+			var droppedElem = event.dataTransfer.getData("text/plain");
+			console.log("<configBoard - onDrop_handler> Dropped element :" + droppedElem);
+		}
+
+		function dragEnd_handler(event){
+			this.style.opacity = 1;
+			console.log("<configBoard - dragEnd_handler> Drag end!");
+			//- console.log("Transfered data: " + event.dataTransfer.getData("text/plain"));
+		}
+
+block main-content
+	#wrapper
+		.grid
+			table
+				- for(var idx1 = 0; idx1 < 10; idx1++) {
+					tr
+					- for(var idx2 = 0; idx2 < 10; idx2++) {
+						td(ondrop="onDrop_handler(event);", ondragover="onDragOver_handler(event);") &nbsp;
+					- }
+				- }
+		.ships
+			center
+				h2 Artillery
+			table
+				tr.shipCategory
+					td Warships
+						- if(ships && typeof ships.warships.number != "undefined")
+							|X#{ships.warships.number}
+						- else
+							|#[span(style="color:yellow") &nbsp; X2]		
+				tr
+					td  
+						table#testID.innerTable(draggable="true", ondragstart="dragStart_handler(event, 5);") 
+							tr
+								td &nbsp; 
+								td &nbsp;
+								td &nbsp;
+								td &nbsp;
+								td &nbsp;
+				tr.shipCategory
+					td BattleShip
+						- if(ships && typeof ships.battleship.number != "undefined")
+							|X#{ships.battleship.number}
+						- else
+							|#[span(style="color:yellow") &nbsp; X1]		
+				tr
+					td
+						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 4);")
+							tr
+								td &nbsp; 
+								td &nbsp;
+								td &nbsp;
+								td &nbsp;
+				tr.shipCategory
+					td Cruiser
+						- if(ships && typeof ships.cruiser.number != "undefined")
+							|X#{ships.cruiser.number}
+						- else
+							|#[span(style="color:yellow") &nbsp; X1]						
+				tr
+					td 
+						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 3);")
+							tr
+								td &nbsp; 
+								td &nbsp;
+								td &nbsp;
+				tr.shipCategory
+					td Destroyer
+						- if(ships && typeof ships.destroyer.number != "undefined")
+							|X#{ships.destroyer.number}
+						- else
+							|#[span(style="color:yellow") &nbsp; X2]		
+				tr
+					td 
+						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 2);") 
+							tr
+								td &nbsp; 
+								td &nbsp;
+				tr.shipCategory
+					td Submarine 
+						- if(ships && typeof ships.submarine.number != "undefined")
+							|X#{ships.submarine.number}
+						- else
+							|#[span(style="color:yellow") &nbsp; X2]		
+				tr
+					td 
+						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 1);") 
+							tr
+								td &nbsp; 
+

@@ -7,7 +7,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/gameRoom', function(req, res, next){
-	res.render('GameRoom/gameRoom');
+	res.render('GameRoom/configBoard');
 });
 
 module.exports = router;

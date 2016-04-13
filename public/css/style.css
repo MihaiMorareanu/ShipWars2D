@@ -1,5 +1,5 @@
 body {
-	background-color: #5E5D5D;
+	background-color: black;
 }
 
 body * {
@@ -22,17 +22,54 @@ a:link, a:visited, a:hover, a:active {
 	margin: auto;
 }
 
-/*First-Grid Container*/
-.first-grid table {
+
+
+/*Board configuration - Grid Container*/
+#wrapper {
+	overflow: auto;
+}
+
+.grid, .ships {
+	float: left;
+}
+
+
+.grid table {
 	empty-cells: show;
 }
 
-.first-grid table, .first-grid table tr, .first-grid table tr td { 
+.grid table, .grid table tr, .grid table tr td { 
 	border: 1px solid black;
 	border-collapse: collapse;
 }
 
-.first-grid table tr td {
+.grid table tr td {
 	width: 60px;
 	height: 60px;
 }
+
+/*Available ships*/
+.ships { 
+	background-image: url('/img/camoPattern.jpg');
+	margin-left: 10px;
+	padding: 10px;
+}
+ 
+.ships .shipCategory td{
+	font-size: 20px;
+}
+
+.ships table.innerTable {
+	empty-cells: show;
+}
+
+.ships table.innerTable, .ships table.innerTable tr, .ships table.innerTable tr td { 
+	border: 3px solid red;
+	border-collapse: collapse;
+}
+
+.ships table.innerTable tr td {
+	width: 20px;
+	height: 20px;
+}
+
