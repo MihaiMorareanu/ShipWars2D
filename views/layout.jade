@@ -2,11 +2,14 @@ doctype html
 html
 	head
 		link(rel='stylesheet', href='/css/style.css')
-	
+		link(rel='stylesheet', href='/jqueryUI/jquery-ui.min.css')
+		script(src="/js/jquery-1.12.3.min.js")
+		script(src="/jqueryUI/jquery-ui.min.js")
 		block head-content
 
 body
 	.title-container
-		
+		center
+			a(href="/" style="color: red; font-size: 25px; font-weight: bold;") ShipWars2D
 	.main-container
 		block main-content

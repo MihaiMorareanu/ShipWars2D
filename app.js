@@ -1,11 +1,10 @@
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var config = require('./config/config');
-
+var session = require('express-session');
 
 /*ROUTES*/
 var routes = require('./routes/index');
@@ -38,7 +37,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(session({
+  saveUninitialized: false,
+  secret: 'secret-key',
+  resave: true,
+  rolling: true,
+  cookie: { 
+      maxAge: 10 * 60 * 1000 //min * sec * milisec = 10 min
+  }
+}));
 
 
 

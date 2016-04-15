@@ -2,50 +2,126 @@ extends ../layout
 
 block head-content
 	script.
-		function dragStart_handler(event, shipSize) {
-		 	console.log("<configBoard - dragStart_handler> Start Draging");
-		 	var draggedElem = event.target;
-			draggedElem.addEventListener('dragend', dragEnd_handler, false);
-
-		 	draggedElem.style.opacity = 0.5;
-
-		 	var startDragProp = {};
-		 	startDragProp.orientation = "horizontal";
-		 	startDragProp.shipSize = shipSize;
-		 	event.dataTransfer.setData("text/plain", JSON.stringify(startDragProp));
-		}
-
-		function onDragOver_handler(event){
-			event.preventDefault();
+		$(document).ready(function(){
 			
-			var draggedElem = event.dataTransfer.getData("text/plain");
-			draggedElem = JSON.parse(draggedElem);
 
-			var destElem = event.target;
-			destElem.style.border = "3px solid red";
+			$('.innerTable')
+			.draggable({helper: 'clone'});
+
+			var modifiedCells = [];
+
+			$('.innerDropSquare').droppable({
+				drop: function(){
+					console.log("Dropped");
+				},
+				over: function(event, ui){
+					//Put listener on spacebar
+					$(document).find('body').unbind();
+					$(document).find('body').bind('keyup', function(event){
+						handleSpaceBarPress.call(ui.draggable, event.keyCode);
+					});
+
+					console.log("Draging");
+					var shipSize = parseInt(ui.draggable.prop('id'));
+					var isVertical = ui.draggable.hasClass('vertical');
+					
+					$(this).css("border", "2px solid red");
+					modifiedCells.push($(this));
+					
+					if(shipSize > 1) {
+						//- console.log("isEven: " + shipSize % 2);
+						var temp = shipSize % 2 == 0 ? (shipSize / 2): Math.round(shipSize / 2) - 1;
+						
+						//- console.log("Middle point(left): " + temp);
+						var tempCurrent$ = $(this);
+						while(temp > 0){
+							if(isVertical){
+								tempCurrent$ = getCellFromPreviousRow(tempCurrent$);
+								console.log("Current: " + tempCurrent$.length);
+							}else
+								tempCurrent$ = tempCurrent$.prev(); 
+							if(tempCurrent$.legth == 0 || !isDroppable(tempCurrent$)) break;
+							tempCurrent$.css("border", "2px solid red");
+							modifiedCells.push(tempCurrent$);
+							--temp;
+						}
+						
+						temp = shipSize % 2 == 0 ? (shipSize / 2) : Math.round(shipSize / 2);
+						--temp;
+						//- console.log("Middle point(right): " + temp);
+						tempCurrent$ = $(this);
+						while(temp > 0){
+							if(isVertical)
+								tempCurrent$ = getCellFromNextRow(tempCurrent$);
+							else
+								tempCurrent$ = tempCurrent$.next();
+							if(tempCurrent$.length == 0 || !isDroppable(tempCurrent$)) break;
+							tempCurrent$.css("border", "2px solid red");	
+							modifiedCells.push(tempCurrent$);
+							--temp;
+						}							
+					}
+				},
+				out: function(){
+					//- $(this).closest('table').find('tr, td').css("border", "1px solid black");
+					console.log("Modified cells length : " + modifiedCells.length);
+					modifiedCells.forEach((elem) => {
+						elem.css("border", "1px solid black");
+					});
+					modifiedCells = [];
+				}
+			});
+		});
+
+		function handleSpaceBarPress(keyCode){
+			console.log("SpaceBar PRESS!");
+			if(keyCode == 32){
+				$(this).toggleClass("vertical");
+
+				var horizontalMatrix = "matrix(1, 0, 0, 1, 0, 0)";
+				var transformVal = $(this).css("transform");
+				if(transformVal.indexOf('matrix') != -1){
+					if(transformVal == horizontalMatrix){
+						console.log("Rotate to vertical!");
+						$(this).css("transform", "rotate(90deg)");
+					} else {
+						console.log("Rotate to horizontal");
+						$(this).css("transform", "rotate(0deg)");
+					}
+				} else {
+					$(this).css("transform", "rotate(90deg)");
+				}
+			}
+		}
+	
+		function getCellFromPreviousRow(currCell){
+			return currCell.parent().prev().find('td').eq(currCell.index());
 		}
 
-		function onDrop_handler(event){
-			event.preventDefault;
-			
-			var droppedElem = event.dataTransfer.getData("text/plain");
-			console.log("<configBoard - onDrop_handler> Dropped element :" + droppedElem);
+		function getCellFromNextRow(currCell){
+			console.log("currCell - down: " + $(currCell).index());
+			return $(currCell).parent().next().find('td').eq($(currCell).index());
 		}
 
-		function dragEnd_handler(event){
-			this.style.opacity = 1;
-			console.log("<configBoard - dragEnd_handler> Drag end!");
-			//- console.log("Transfered data: " + event.dataTransfer.getData("text/plain"));
+		function isDroppable(elem){
+			return elem.hasClass('innerDropSquare');
 		}
 
 block main-content
 	#wrapper
 		.grid
 			table
-				- for(var idx1 = 0; idx1 < 10; idx1++) {
-					tr
-					- for(var idx2 = 0; idx2 < 10; idx2++) {
-						td(ondrop="onDrop_handler(event);", ondragover="onDragOver_handler(event);") &nbsp;
+				- for(var idx1 = 0; idx1 < 11; idx1++) {
+				tr
+					- for(var idx2 = 0; idx2 < 11; idx2++) {
+					if idx1 == 0 && idx2 == 0
+						td.outerSquare &nbsp;
+					else if idx1 == 0
+						td.outerSquare= String.fromCharCode('A'.charCodeAt(0) + (idx2 - 1))
+					else if idx2 == 0
+						td.outerSquare= idx1
+					else 
+						td.innerDropSquare &nbsp;
 					- }
 				- }
 		.ships
@@ -60,7 +136,7 @@ block main-content
 							|#[span(style="color:yellow") &nbsp; X2]		
 				tr
 					td  
-						table#testID.innerTable(draggable="true", ondragstart="dragStart_handler(event, 5);") 
+						table#5.innerTable 
 							tr
 								td &nbsp; 
 								td &nbsp;
@@ -75,7 +151,7 @@ block main-content
 							|#[span(style="color:yellow") &nbsp; X1]		
 				tr
 					td
-						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 4);")
+						table#4.innerTable
 							tr
 								td &nbsp; 
 								td &nbsp;
@@ -89,7 +165,7 @@ block main-content
 							|#[span(style="color:yellow") &nbsp; X1]						
 				tr
 					td 
-						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 3);")
+						table#3.innerTable
 							tr
 								td &nbsp; 
 								td &nbsp;
@@ -102,7 +178,7 @@ block main-content
 							|#[span(style="color:yellow") &nbsp; X2]		
 				tr
 					td 
-						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 2);") 
+						table#2.innerTable 
 							tr
 								td &nbsp; 
 								td &nbsp;
@@ -114,7 +190,7 @@ block main-content
 							|#[span(style="color:yellow") &nbsp; X2]		
 				tr
 					td 
-						table.innerTable(draggable="true", ondragstart="dragStart_handler(event, 1);") 
+						table#1.innerTable 
 							tr
 								td &nbsp; 
 

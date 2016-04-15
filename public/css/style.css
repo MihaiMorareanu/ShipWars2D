@@ -19,9 +19,9 @@ a:link, a:visited, a:hover, a:active {
 	background-color: #7090E5;
 	top: 100px;
 	width: 900px;
+	min-height: 700px;
 	margin: auto;
 }
-
 
 
 /*Board configuration - Grid Container*/
@@ -38,14 +38,22 @@ a:link, a:visited, a:hover, a:active {
 	empty-cells: show;
 }
 
-.grid table, .grid table tr, .grid table tr td { 
-	border: 1px solid black;
+.grid table{
 	border-collapse: collapse;
 }
+
+.grid table tr td.innerDropSquare { 
+	border: 1px solid black;
+}
+
 
 .grid table tr td {
 	width: 60px;
 	height: 60px;
+}
+
+.outerSquare {
+	text-align: center;
 }
 
 /*Available ships*/
@@ -72,4 +80,3 @@ a:link, a:visited, a:hover, a:active {
 	width: 20px;
 	height: 20px;
 }
-
