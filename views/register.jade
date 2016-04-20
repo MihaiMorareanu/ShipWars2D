@@ -3,24 +3,30 @@ extends layout
 
 block main-content
 	.formContainer
-		h3.title Login	
+		h3.title Register	
 		form(action="/users/makeAccount", method="GET")
-
-
-			.formEntry
-				label(for="fName") First Name:&nbsp;&nbsp;&nbsp;&nbsp;
-					input#fName(type="text", name="fName", value= typeof fName=== "undefined" ? "" : fName.value)
-				span.text-error.block= typeof fName === "undefined" ? "" : typeof fName.error === "undefined" ? "" : fName.error
-			.formEntry
-				label(for="lName") Last Name:&nbsp;&nbsp;&nbsp;&nbsp;
-					input#lName(type="text", name="lName", value= typeof lName=== "undefined" ? "" : lName.value)
-				span.text-error.block= typeof lName === "undefined" ? "" : typeof lName.error === "undefined" ? "" : lName.error
-			.formEntry
-				label(for="email") Email:&nbsp;&nbsp;&nbsp;&nbsp;
-					input#email(type="text", name="email", value= typeof email=== "undefined" ? "" : email.value)
-				span.text-error.block= typeof email === "undefined" ? "" : typeof email.error === "undefined" ? "" : email.error
-			.formEntry
-				label(for="pass") Password:&nbsp;&nbsp;&nbsp;&nbsp;
-					input#pass(type="password", name="pass", value= typeof pass=== "undefined" ? "" : pass.value)
-				span.text-error.block= typeof pass === "undefined" ? "" : typeof pass.error === "undefined" ? "" : pass.error
-			
+			table
+				tr
+					td Username: 
+					td
+						- var tempUsername = typeof fields === "undefined" ? "" : fields.username;
+						input#username(type="text", name="username", value= tempUsername)
+						span.text-error.block= typeof errors === "undefined" ? "" : typeof errors.Username === "undefined" ? "" : errors.Username 
+				tr
+					td Password:
+					td
+						- var tempPass = typeof fields === "undefined" ? "" : fields.pass;
+						input#pass(type="password", name="pass", value= tempPass)
+						span.text-error.block= typeof errors === "undefined" ? "" : typeof errors.Password === "undefined" ? "" : errors.Password
+				tr
+					td Retype Password:
+					td
+						input#pass_retype(type="password", name="pass_retype", value= typeof fields === "undefined" ? "" : fields.pass_retype)
+						span.text-error.block= typeof errors === "undefined" ? "" : typeof errors.pass_retype === "undefined" ? "" : errors.pass_retype		
+				tr
+					td
+						button(type="submit") Register
+						button(type="reset") Reset
+					td
+				tr
+					td(colspan="2") Already have an account? #[a(href="/login") Please login]

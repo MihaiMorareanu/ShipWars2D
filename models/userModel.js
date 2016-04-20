@@ -8,17 +8,37 @@ var userSchema = new Schema({
 		type: String,
 		required: true
 	},
-	Name: {
-		first: String,
-		last: String
-	},
-	Email: String,
 	Password: {
 		type: String,
 		required: true
-	}
+	},
+    Game: {
+        type: Schema.ObjectId,
+        ref: 'Game'
+    },
+    Rank: {
+        type: Number,
+        default: 1
+    },
+    Points: {
+        type: Number,
+        default: 0
+    }
 });
 
+
+
+/*Unique name validation*/
+userSchema
+    .path('Username')
+    .validate(function(value, done){
+        this.model('User').count({Username: value}, function(err, count){
+            if(err)
+                return done(err);
+            
+            done(!count);
+            });
+    }, "Username is already used");
 
 /*Before save, encrypt password*/
 userSchema.pre('save', function(next){
@@ -29,12 +49,14 @@ userSchema.pre('save', function(next){
         bcrypt.genSalt(SALT, function(err, salt){
             if(err) return next(err);
 
-            bcrypt.hash(user.Password, salt, function(err, hash){
+            bcrypt.hash(user.Password, 10, function(err, hash){
                 user.Password = hash;
                 next();
             });
         });
     });
+
+
 
 /*Compara daca parola data cu parola din baza de date -> Validator*/
 userSchema.methods.comparePasswords = function(givenPass, cb){

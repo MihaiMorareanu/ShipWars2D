@@ -15,6 +15,7 @@ a:link, a:visited, a:active {
  
 a:hover{
 	font-weight: bold;
+	color: blue;
 }
 
 .main-container {
