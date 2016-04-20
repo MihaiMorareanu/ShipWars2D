@@ -1,4 +1,27 @@
 extends layout
 
+
 block main-content
-	h3 login page
+	.formContainer
+		h3.title Login	
+		form(action="/users/verifyAccount", method="GET")
+			table
+				tr
+					td Username: 
+					td
+						- var tempUsername = typeof username === "undefined" ? "" : username.value;
+						input#username(type="text", name="username", value= tempUsername)
+				tr
+					td Password:
+					td 
+						- var tempPass = typeof pass === "undefined" ? "" : pass.value;
+						input#pass(type="password", name="pass", value= tempPass)
+				tr
+					td
+						button(type="submit") Login
+						button(type="reset") Reset
+					td
+						span.text-error.block= typeof error === "undefined" ? "" : error
+				tr
+					td(colspan="2") Don't have an account? 
+						a(href="/register") Register

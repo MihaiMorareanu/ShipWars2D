@@ -5,16 +5,13 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var config = require('./config/config');
 var session = require('express-session');
+var mongoose = require('mongoose');
 
 /*ROUTES*/
 var routes = require('./routes/index');
-// var users = require('./routes/users');
-
-
+var users = require('./routes/users');
 
 var app = express();
-
-
 
 
 /* Environment settings */
@@ -24,15 +21,20 @@ if(process.argv[2] && typeof process.argv[2] != "undefined")
   else
     app.set('env', 'development');
 
+mongoose.connect('mongodb://'+ config.DBUSER +':'+ config.DBPASS +'@'+ config.DBHOST +':'+ config.DBPORT +'/'+ config.DBNAME);
+mongoose.connection.once('open', function(){
+
+  console.log('<MONGOOSE> Connected to : ' + 'mongodb://'+ config.DBUSER +':'+ config.DBPASS +'@'+ config.DBHOST +':'+ config.DBPORT +'/'+ config.DBNAME);
+});
+
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 
 
-
-
 /*MIDLEWARE SET*/
-app.use(logger('dev'));
+// app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -47,11 +49,18 @@ app.use(session({
   }
 }));
 
+/*Set user on session (if exist)*/
+app.use(function(req, res, next){
+    if(req.session.user)
+        res.locals.user = req.session.user;
+    
+    next();
+});
 
 
 /* ROUTER SET */
 app.use('/', routes);
-// app.use('/users', users);
+app.use('/users', users);
 
 
 

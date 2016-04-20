@@ -1,0 +1,26 @@
+extends layout
+
+
+block main-content
+	.formContainer
+		h3.title Login	
+		form(action="/users/makeAccount", method="GET")
+
+
+			.formEntry
+				label(for="fName") First Name:&nbsp;&nbsp;&nbsp;&nbsp;
+					input#fName(type="text", name="fName", value= typeof fName=== "undefined" ? "" : fName.value)
+				span.text-error.block= typeof fName === "undefined" ? "" : typeof fName.error === "undefined" ? "" : fName.error
+			.formEntry
+				label(for="lName") Last Name:&nbsp;&nbsp;&nbsp;&nbsp;
+					input#lName(type="text", name="lName", value= typeof lName=== "undefined" ? "" : lName.value)
+				span.text-error.block= typeof lName === "undefined" ? "" : typeof lName.error === "undefined" ? "" : lName.error
+			.formEntry
+				label(for="email") Email:&nbsp;&nbsp;&nbsp;&nbsp;
+					input#email(type="text", name="email", value= typeof email=== "undefined" ? "" : email.value)
+				span.text-error.block= typeof email === "undefined" ? "" : typeof email.error === "undefined" ? "" : email.error
+			.formEntry
+				label(for="pass") Password:&nbsp;&nbsp;&nbsp;&nbsp;
+					input#pass(type="password", name="pass", value= typeof pass=== "undefined" ? "" : pass.value)
+				span.text-error.block= typeof pass === "undefined" ? "" : typeof pass.error === "undefined" ? "" : pass.error
+			

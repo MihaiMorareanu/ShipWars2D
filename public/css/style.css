@@ -9,8 +9,12 @@ body * {
 	text-decoration: none
 }
 
-a:link, a:visited, a:hover, a:active {
+a:link, a:visited, a:active {
 	color: #000;
+}
+ 
+a:hover{
+	font-weight: bold;
 }
 
 .main-container {
@@ -24,7 +28,26 @@ a:link, a:visited, a:hover, a:active {
 }
 
 
-/*Board configuration - Grid Container*/
+/** Login **/
+.formContainer {
+	position: relative;
+	top: 100px;
+	width: 600px;
+	margin: auto;
+	border-radius: 5px;
+	background-color: #ACACAC;
+}
+
+div.formContainer .formEntry {
+	margin-top: 10px;
+}
+
+.title {
+	text-align: center;
+}
+
+
+/** Board configuration - Grid Container **/
 #wrapper {
 	overflow: auto;
 }
@@ -79,4 +102,15 @@ a:link, a:visited, a:hover, a:active {
 .ships table.innerTable tr td {
 	width: 20px;
 	height: 20px;
+}
+
+
+
+
+/*Helper classes*/
+.text-error{
+	color: red;
+}
+.block{
+	display: block;
 }

@@ -1,4 +1,9 @@
 extends layout
 
 block main-content
-	h3 Main Page
+	if user && typeof user != "undefined"
+		h3 Main Page
+	else
+		h3 Not logged in
+		a(href="/login") Login &nbsp;
+		a(href="/register") Register
