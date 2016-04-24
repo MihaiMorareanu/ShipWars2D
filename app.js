@@ -6,12 +6,23 @@ var bodyParser = require('body-parser');
 var config = require('./config/config');
 var session = require('express-session');
 var mongoose = require('mongoose');
+var socketHandler = require('./lib/Helpers/socket-handler');
+
 
 /*ROUTES*/
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
+
+/*Start listen*/
+var server = app.listen(config.PORT);
+console.log("<APP> Start listening on port: " + config.PORT);
+
+
+//Set socket handler
+socketHandler(server);
+
 
 
 /* Environment settings */
@@ -98,6 +109,3 @@ app.use(function(err, req, res, next) {
 });
 
 
-/*Start listen*/
-app.listen(config.PORT);
-console.log("<APP> Start listening on port: " + config.PORT);
