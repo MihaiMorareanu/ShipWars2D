@@ -2,10 +2,11 @@ var express = require('express');
 var router = express.Router();
 var userController = require('../controller/userController');
 
-/* GET - verify user account */
-router.get('/verifyAccount', userController.verifyAccount);
+/* POST - verify user account */
+router.post('/verifyAccount', userController.verifyAccount);
 
-router.get('/makeAccount', userController.makeAccount);
+/* POST - make user account */
+router.post('/makeAccount', userController.makeAccount);
 
 
 module.exports = router;

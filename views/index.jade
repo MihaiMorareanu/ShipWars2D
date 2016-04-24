@@ -2,8 +2,20 @@ extends layout
 
 block main-content
 	if user && typeof user != "undefined"
-		h3 Main Page
+		.menu-part-1
+			.player-container
+				h4.player test-1
+				h4.player test-1
+
+			a.quickGame QuickGame
+		.menu-part-2
+			center
+				h3 Invites
+			.invites-container
+				h4.invite invite-1
+				
 	else
-		h3 Not logged in
-		a(href="/login") Login &nbsp;
-		a(href="/register") Register
+		.formContainer
+			h3 Not logged in
+			a(href="/login") Login &nbsp;
+			a(href="/register") Register

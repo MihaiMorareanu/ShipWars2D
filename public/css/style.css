@@ -48,6 +48,74 @@ div.formContainer .formEntry {
 }
 
 
+/* Index page */
+.menu-part-1{
+	position: relative;
+	float: left;
+	width: 49%;
+	height: 690px;
+	border: 1px solid black;
+	border-radius: 5px;
+	margin-right: 5px;
+	text-align: center;
+	box-shadow: 0 0 2px;
+}
+
+.menu-part-2{
+	position: relative;
+	float: left;
+	width: 49%;
+	height: 690px;
+	border: 1px solid black;
+	border-radius: 5px;
+	box-shadow: 0 0 2px;
+}
+
+.player-container {
+	top: 3px;
+	position: relative;
+	margin: auto;
+	width: 98%;
+	height: 85%;
+	border: 1px solid blue;
+	border-radius: 5px;
+	background-color: #7477B3;
+	overflow: auto;
+}
+
+.player-container .player:hover{
+	background-color: blue;
+	cursor: pointer;
+}
+
+.invites-container {
+	position: relative;
+	padding: 5px;
+	margin: auto;
+	width: 95%;
+	height: 93%;
+	border: 1px solid blue;
+	border-radius: 5px;
+	background-color: #7477B3;
+	overflow: auto;
+}
+
+.invites-container .invite:hover{
+	cursor: pointer;
+	background-color: yellow;
+}
+
+.quickGame { 
+	position: relative;
+	top: 40px;
+	margin: auto;
+	font-size: 25px;
+	cursor: pointer;
+	
+}
+
+
+
 /** Board configuration - Grid Container **/
 #wrapper {
 	overflow: auto;
@@ -79,6 +147,8 @@ div.formContainer .formEntry {
 .outerSquare {
 	text-align: center;
 }
+
+
 
 /*Available ships*/
 .ships { 

@@ -5,9 +5,12 @@ var User = require('../models/userModel');
 module.exports = {
 	
 	verifyAccount: function(req, res){
-		console.log("<userController - verifyAccount> Start verify account for username " + req.query.username + " pass: " + req.query.pass); 		
+		var username = req.body.username;
+		var password = req.body.pass; 
+
+		console.log("<userController - verifyAccount> Start verify account for username " + username + " pass: " + password); 		
 		
-		User.findOne({Name: req.body.username}, function(err, user){
+		User.findOne({Username: username}, function(err, user){
 			
 			if(err){
 				console.log("<userController - verifyAccount> Error: " + err.message);
@@ -18,19 +21,18 @@ module.exports = {
 				res.render("login", {error: "Username or password are incorrect"});
 			}else{
 				
-				if(user.comparePasswords(req.body.pass, function(err, result){
-				if(err){
+				if(user.comparePasswords(password, function(err, result){
+					if(err){
 						console.log("<userController - verifyAccount> Error: " + err.message);
 						res.render("login", {error: err.message});
 					}
 
 					if(result){
 						req.session.user = user;
-						res.redirect("index");
+						res.redirect("/");
 					} else {
 						res.render("login", {error: "Username or password are incorrect"});
 					}	
-					
 				}));
 			}
 		});
