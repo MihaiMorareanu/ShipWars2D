@@ -6,7 +6,9 @@ module.exports = {
 	
 	verifyAccount: function(req, res){
 		console.log("<userController - verifyAccount> Start verify account for username " + req.query.username + " pass: " + req.query.pass); 		
-		User.findOne({Name: req.query.username}, function(err, user){
+		
+		User.findOne({Name: req.body.username}, function(err, user){
+			
 			if(err){
 				console.log("<userController - verifyAccount> Error: " + err.message);
 				res.render("login", {error: err.message});
@@ -15,8 +17,9 @@ module.exports = {
 			if(typeof user === "undefined" || user == null){
 				res.render("login", {error: "Username or password are incorrect"});
 			}else{
-				if(user.comparePasswords(req.query.pass, function(err, result){
-					if(err){
+				
+				if(user.comparePasswords(req.body.pass, function(err, result){
+				if(err){
 						console.log("<userController - verifyAccount> Error: " + err.message);
 						res.render("login", {error: err.message});
 					}
@@ -32,17 +35,16 @@ module.exports = {
 			}
 		});
 	},
-	
 	makeAccount: function (req, res){
 		console.log("<userController - makeAccount> Make new account!");
 		
-		var reqUsername = req.query.username;
-		var reqPassword = req.query.pass;
-		var reqPasswordRetype = req.query.pass_retype;
+		var reqUsername = req.body.username;
+		var reqPassword = req.body.pass;
+		var reqPasswordRetype = req.body.pass_retype;
 
 		//Verify password and retype password are equal
 		if(reqPassword != reqPasswordRetype){
-			res.render('register', {fields: req.query, errors: {pass_retype: "Password is not the same!"}});
+			res.render('register', {fields: req.body, errors: {pass_retype: "Password is not the same!"}});
 			return;
 		}
 
@@ -53,7 +55,7 @@ module.exports = {
 				for(var field in err.errors){
 					tempObj[field] = err.errors[field].message;
 				};
-				res.render('register', {fields: req.query, errors: tempObj});
+				res.render('register', {fields: req.body, errors: tempObj});
 			}else{
 				console.log("User "+ user.Username +" saved!");	
 
