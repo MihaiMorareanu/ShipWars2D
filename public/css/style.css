@@ -29,6 +29,11 @@ a:hover{
 }
 
 
+
+
+
+
+
 /** Login **/
 .formContainer {
 	position: relative;
@@ -46,6 +51,14 @@ div.formContainer .formEntry {
 .title {
 	text-align: center;
 }
+
+
+
+
+
+
+
+
 
 
 /* Index page */
@@ -105,6 +118,17 @@ div.formContainer .formEntry {
 	background-color: yellow;
 }
 
+
+.invite-prepared{
+	color: white;
+}
+
+.invite-sent{
+	color: green;
+}
+
+
+
 .quickGame { 
 	position: relative;
 	top: 40px;
@@ -113,6 +137,15 @@ div.formContainer .formEntry {
 	cursor: pointer;
 	
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -147,6 +180,9 @@ div.formContainer .formEntry {
 .outerSquare {
 	text-align: center;
 }
+
+
+
 
 
 

@@ -6,6 +6,9 @@ html
 		script(src="/js/jquery-1.12.3.min.js")
 		script(src="/jqueryUI/jquery-ui.min.js")
 		script(src="https://cdn.socket.io/socket.io-1.4.5.js")
+		script.
+			var socket = io.connect('localhost:3000');
+		
 		block head-content
 
 body

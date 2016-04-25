@@ -1,61 +1,100 @@
 extends layout
 
+block head-content
+
+
 block main-content
 	if user && typeof user != "undefined"
 		script(type="text/javascript").
-			var socket = io.connect('localhost:3000');
 			
-			var allUsersInterval;
-			socket.on('error', function(){
-				console.log("Error!");
-				clearInterval(allUsersInterval);
-			});
-			
-			//Initial get ALL users request - request each 2 sec
-			allUsersInterval = setInterval(function(){
-				socket.emit('getAllUsers');
-			}, 5000);
-			
-			socket.on('allUsersList', function(data){
-				var userArr = data.userList;
-				console.log("<Page - Index> Data: " + userArr);
-				var playerContainer = document.getElementsByClassName('player-container')[0];
+			window.onload = function(){
 				
-				var nodeList = new Array(playerContainer.childNodes);
-				for(var node in nodeList){
-					console.log("Players text: " + node.textContent);
-				}
+				var curretUser = document.getElementById('loggedInUser').textContent;
+
+				var allUsersInterval;
+				socket.on('error', function(){
+					console.log("Error!");
+					clearInterval(allUsersInterval);
+				});
 				
+				//Initial get ALL users request - request each 2 sec
+				allUsersInterval = setInterval(function(){
+					socket.emit('getAllUsers', {currentUser: curretUser});
+				}, 5000);
+				
+				socket.on('allUsersList', function(data){
+					var userArr = data.userList;
+					//- console.log("<Page - Index> Data: " + userArr);
+					var playerContainer = document.getElementsByClassName('player-container')[0];
+					var nodeList = playerContainer.childNodes;
 
-
-				var players = new Array(playerContainer.childNodes).map(function(playerElem){return playerElem.textContent;});
-
-				for(var idx = 0; idx < userArr.length; idx++){
-					if(listContainsElem(players, userArr[idx])){
-						console.log("List contains elem!");
-						continue;
-					} else {
-						console.log("List doesn't contains elem!");
+					var players = [];
+					for(var idx = 0; idx < nodeList.length; idx++){
+						players.push(nodeList[idx].textContent);
 					}
 
-					var playerNode = document.createElement('H4');
-					var playerNodeText = document.createTextNode(userArr[idx]);
-					playerNode.appendChild(playerNodeText);
-					playerNode.className += "player";
-					playerContainer.appendChild(playerNode);
-				}
-				
-				function listContainsElem(list, elem){
-					return list.indexOf(elem) != -1;
-				}
-			});
-			
-			
+					console.log("Players: " + players);
 
+					for(var idx = 0; idx < userArr.length; idx++){
+						if(listContainsElem(players, userArr[idx])){
+							continue;
+						} else {
+							console.log("List doesn't contains elem!");
+							var playerNode = document.createElement('H4');
+							var playerNodeText = document.createTextNode(userArr[idx]);
+							playerNode.appendChild(playerNodeText);
+							playerNode.className += "player";
+							playerNode.onclick = handleUserInvite_click;
+							playerNode.onmouseout = handleUserInvite_mouseOut;
+							playerContainer.appendChild(playerNode);
+
+						}
+					}
+
+					
+					if(userArr.length < players.length){
+						console.log("Deleted elements!");
+						var diff = players.filter(function(player){return userArr.indexOf(player) == -1});
+						
+						for(var idx = 0; idx < nodeList.length; idx++){
+							if(diff.indexOf(nodeList[idx].textContent) != -1){
+								nodeList[idx].parentNode.removeChild(nodeList[idx]);
+							}
+						}						
+					}
+
+
+					function listContainsElem(list, elem){
+						return list.indexOf(elem) != -1;
+					}
+				});
+
+
+
+				function handleUserInvite_mouseOut(event){
+					var elem = event.target;
+					if(elem.classList.contains("invite-prepared"))
+						elem.classList.remove("invite-prepared");
+				}						
+
+				function handleUserInvite_click(event){
+					var elem = event.target;
+					if(elem.classList.contains("invite-prepared")){
+						elem.classList.remove("invite-prepared");
+						elem.classList.add("invite-sent");
+
+						socket.emit("registerInvite", {from: curretUser, to: elem.textContent});
+					}else{	
+						elem.classList.add("invite-prepared");
+					}
+				}
+
+			};
+
+		p#loggedInUser(style="display:none")= user.Username
 		.menu-part-1
 			.player-container
-				h4.player test-1
-				h4.player test-1
+	
 
 			a.quickGame QuickGame
 		.menu-part-2
@@ -63,9 +102,10 @@ block main-content
 				h3 Invites
 			.invites-container
 				h4.invite invite-1
-
 	else
 		.formContainer
 			h3 Not logged in
 			a(href="/login") Login &nbsp;
 			a(href="/register") Register
+
+	

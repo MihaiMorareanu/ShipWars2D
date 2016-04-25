@@ -21,7 +21,7 @@ console.log("<APP> Start listening on port: " + config.PORT);
 
 
 //Set socket handler
-socketHandler(server);
+socketHandler.openSocketStream(server);
 
 
 
@@ -72,6 +72,10 @@ app.use(function(req, res, next){
 /* ROUTER SET */
 app.use('/', routes);
 app.use('/users', users);
+
+
+
+
 
 
 

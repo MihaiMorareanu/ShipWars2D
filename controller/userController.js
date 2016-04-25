@@ -1,5 +1,3 @@
-
-
 var User = require('../models/userModel');
 
 module.exports = {
@@ -28,6 +26,15 @@ module.exports = {
 					}
 
 					if(result){
+						User
+						.update({_id: user._id}, {$set: {isAvailable: true}}, function(err, raw){
+							if(err){
+								console.log("Can't set login state for " + user.Username + " username");
+							}
+
+							console.log("Response for user login state update: " + JSON.stringify(raw));
+						});
+						
 						req.session.user = user;
 						res.redirect("/");
 					} else {
@@ -60,6 +67,15 @@ module.exports = {
 				res.render('register', {fields: req.body, errors: tempObj});
 			}else{
 				console.log("User "+ user.Username +" saved!");	
+
+				User
+				.update({_id: user._id}, {$set: {isAvailable: true}}, function(err, raw) {
+					if(err){
+						console.log("Can't set login state for " + user.Username + " username");
+					}
+
+					console.log("Response for user login state update: " + JSON.stringify(raw));
+				});
 
 				//Set user on session
 				req.session.user = user;
