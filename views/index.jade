@@ -20,9 +20,20 @@ block main-content
 				//Initial get ALL users request - request each 2 sec
 				allUsersInterval = setInterval(function(){
 					socket.emit('getAllUsers', {currentUser: curretUser});
+					socket.emit('getAllInvites', {currentUser: curretUser});
 				}, 5000);
 				
-				socket.on('allUsersList', function(data){
+				socket.on('allUsersList', allUserReciver);
+
+				socket.on('invitesList', allInvitesReciver);
+			
+				socket.on('startConfiguration', startConfiguration);
+
+				function listContainsElem(list, elem){
+					return list.indexOf(elem) != -1;
+				}
+				
+				function allUserReciver(data){
 					var userArr = data.userList;
 					//- console.log("<Page - Index> Data: " + userArr);
 					var playerContainer = document.getElementsByClassName('player-container')[0];
@@ -62,14 +73,50 @@ block main-content
 							}
 						}						
 					}
+				}
 
+				function allInvitesReciver(data){
+					var invites = data.invites;
+					
+					var invitesContainer = document.getElementsByClassName('invites-container')[0];
+					var nodeList = invitesContainer.childNodes;
 
-					function listContainsElem(list, elem){
-						return list.indexOf(elem) != -1;
+					var onScreenInvites = [];
+					for(var idx = 0; idx < nodeList.length; idx++){
+						var tempScrInvt = nodeList[idx].textContent;
+						if(invites.indexOf(tempScrInvt) == -1)
+							//Remove node
+							nodeList[idx].parentNode.removeChild(nodeList[idx]);
+						else 
+							onScreenInvites.push(tempScrInvt);
 					}
-				});
 
+					invites.forEach(function(invite, idx){
+						if(!listContainsElem(onScreenInvites, invite)){
+							//- console.log("Adding new invite!");
+							var inviteContainerNode = document.createElement('DIV');
+							inviteContainerNode.onclick = acceptInvite;
+							inviteContainerNode.classList.add('invite');
+							
+							var xIcon = document.createElement("SPAN");
+							var xIconText = document.createTextNode("X");
+							xIcon.classList.add("inline");
+							xIcon.classList.add("close");
+							xIcon.appendChild(xIconText);
+							xIcon.onclick= declineInvite;
+							inviteContainerNode.appendChild(xIcon);
+							
+							var inviteNode = document.createElement('H4');
+							var inviteNodeText = document.createTextNode(invite);
+							inviteNode.classList.add("inline");
+							inviteNode.classList.add("senderName");
+							inviteNode.appendChild(inviteNodeText);
+							inviteContainerNode.appendChild(inviteNode);
 
+							invitesContainer.appendChild(inviteContainerNode);
+						}
+					});
+				}
 
 				function handleUserInvite_mouseOut(event){
 					var elem = event.target;
@@ -89,7 +136,26 @@ block main-content
 					}
 				}
 
+				function declineInvite(event){
+					var elem = event.target;
+					var inviteSender = elem.parentNode.getElementsByClassName('senderName')[0].textContent;
+					socket.emit('declineInvite', {from: inviteSender, to: curretUser});
+				}
+
+				function acceptInvite(event){
+					var elem = event.target;
+					var inviteSender = elem.parentNode.getElementsByClassName('senderName')[0].textContent;
+					socket.emit('createRoom', {from: inviteSender, to: curretUser});
+				}
+
+				function startConfiguration(data){
+					//- window.location = "/gameRoom";
+					console.log("StartConfig => " + JSON.stringify(data));
+				}
 			};
+
+
+
 
 		p#loggedInUser(style="display:none")= user.Username
 		.menu-part-1
@@ -101,7 +167,7 @@ block main-content
 			center
 				h3 Invites
 			.invites-container
-				h4.invite invite-1
+				
 	else
 		.formContainer
 			h3 Not logged in

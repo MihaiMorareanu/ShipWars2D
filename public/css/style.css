@@ -127,19 +127,27 @@ div.formContainer .formEntry {
 	color: green;
 }
 
-
-
 .quickGame { 
 	position: relative;
 	top: 40px;
 	margin: auto;
 	font-size: 25px;
 	cursor: pointer;
-	
 }
 
+.invite{
+	display: block;
+	padding: 3px;
 
+}
 
+.invite .close{
+	float: right;
+}
+
+.invite .close:hover{
+	color: red;
+}
 
 
 
@@ -218,6 +226,11 @@ div.formContainer .formEntry {
 .text-error{
 	color: red;
 }
+
 .block{
 	display: block;
+}
+
+.inline{
+	display: inline;
 }
