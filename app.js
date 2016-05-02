@@ -62,11 +62,13 @@ app.use(session({
 
 /*Set user on session (if exist)*/
 app.use(function(req, res, next){
+    console.log("User: " + req.session.user);
     if(req.session.user)
         res.locals.user = req.session.user;
     
     next();
 });
+
 
 
 /* ROUTER SET */

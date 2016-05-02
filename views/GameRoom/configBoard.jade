@@ -1,18 +1,52 @@
 extends ../layout
 
 block head-content
-	script.
-		$(document).ready(function(){
-			
 
-			$('.innerTable')
-			.draggable({helper: 'clone'});
+	script.
+		window.onload = function(){
+			
+			window.roomID = document.getElementById('room').textContent;
+			window.currUser = document.getElementById('user').textContent;
+
+			//On refresh render CurrentConfig
+			var currConfig = JSON.parse( $('<textarea/>').html('#{currConfig}').text() );
+			placeCurrentConfig(currConfig);			
+
+
+
+			/*****      SOCKET JOBS      ******/
+			socket.on('error', function(err){
+				console.log("Error: " + err.message);
+			});
+						
+			socket.on('boatRegistered', boatRegistered);
+
+			socket.on('boatNotRegistered', boatNotRegistered);
+	
+			socket.on('boatRemoved', boatRemoved);
+			
+			socket.on('boatNotRemoved', boatNotRemoved);
+
+
+
+			/***** DRAGGABLE & DROPPABLE ******/
+			$('.draggable').draggable({helper: 'clone'});
 
 			var modifiedCells = [];
 
 			$('.innerDropSquare').droppable({
-				drop: function(){
-					console.log("Dropped");
+				drop: function(event, ui){
+					var droppedElem = ui.draggable;
+					
+					//Highlit dropped elements
+					console.log("Modified cells length: " + modifiedCells.length);
+					if(!verifyElemSet(modifiedCells)){
+						unHighlightElems(modifiedCells);	
+					} else {
+						registerBoat(modifiedCells);							
+					}
+
+					//TODO: Decrease number of boats to select
 				},
 				over: function(event, ui){
 					//Put listener on spacebar
@@ -21,11 +55,11 @@ block head-content
 						handleSpaceBarPress.call(ui.draggable, event.keyCode);
 					});
 
-					console.log("Draging");
+					//- console.log("Draging");
 					var shipSize = parseInt(ui.draggable.prop('id'));
 					var isVertical = ui.draggable.hasClass('vertical');
 					
-					$(this).css("border", "2px solid red");
+					$(this).addClass('temp-hover');
 					modifiedCells.push($(this));
 					
 					if(shipSize > 1) {
@@ -37,11 +71,11 @@ block head-content
 						while(temp > 0){
 							if(isVertical){
 								tempCurrent$ = getCellFromPreviousRow(tempCurrent$);
-								console.log("Current: " + tempCurrent$.length);
+								//- console.log("Current: " + tempCurrent$.length);
 							}else
 								tempCurrent$ = tempCurrent$.prev(); 
 							if(tempCurrent$.legth == 0 || !isDroppable(tempCurrent$)) break;
-							tempCurrent$.css("border", "2px solid red");
+							tempCurrent$.addClass('temp-hover');
 							modifiedCells.push(tempCurrent$);
 							--temp;
 						}
@@ -56,7 +90,7 @@ block head-content
 							else
 								tempCurrent$ = tempCurrent$.next();
 							if(tempCurrent$.length == 0 || !isDroppable(tempCurrent$)) break;
-							tempCurrent$.css("border", "2px solid red");	
+							tempCurrent$.addClass('temp-hover');
 							modifiedCells.push(tempCurrent$);
 							--temp;
 						}							
@@ -64,32 +98,111 @@ block head-content
 				},
 				out: function(){
 					//- $(this).closest('table').find('tr, td').css("border", "1px solid black");
-					console.log("Modified cells length : " + modifiedCells.length);
+					//- console.log("Modified cells length : " + modifiedCells.length);
 					modifiedCells.forEach((elem) => {
-						elem.css("border", "1px solid black");
+						elem.removeClass('temp-hover');
 					});
 					modifiedCells = [];
 				}
 			});
-		});
+		};
+
+		function placeCurrentConfig(configurations){
+			var boatType = [' ', 'Submarine', 'Destroyer', 'Cruiser', 'BattleShip', 'Warship'];
+			
+			var configContainerElement = document.getElementsByClassName('configContainer')[0];
+			
+			configurations.forEach( function(config){
+				
+				//Create paragraph with shipType
+				var p = document.createElement('P');
+				var p_text = document.createTextNode(boatType[config.Size]);
+				p.appendChild(p_text);
+
+				var fromHolder = config.From.split("-"); 
+				var fromCol = String.fromCharCode(64 + parseInt(fromHolder[0]));
+				var fromRaw = parseInt(fromHolder[1]);
+				var toHolder = config.To.split("-"); 
+				var toCol = String.fromCharCode(64 + parseInt(toHolder[0]));
+				var toRaw = parseInt(toHolder[1]);
+				
+				//Create span with interval and close button
+				var span1 = document.createElement('SPAN');
+				var span1_text = document.createTextNode(fromCol+fromRaw+"-"+toCol+toRaw);
+				span1.appendChild(span1_text);
+				span1.classList.add('configDesc');
+				
+				var span2 = document.createElement('SPAN');
+				var span2_text = document.createTextNode('X');
+				span2.appendChild(span2_text);
+				span2.classList.add('close');
+				span2.addEventListener('click', removeConfig);
+				span2.setAttribute('data-size', config.Size);
+				span2.setAttribute('data-to', config.To);
+				span2.setAttribute('data-from', config.From);
+				
+				//Create DIV class=config
+				var configDIV = document.createElement('DIV');
+				configDIV.classList.add('config');
+				configDIV.appendChild(p);
+				configDIV.appendChild(span1);
+				configDIV.appendChild(span2);
+
+				configContainerElement.appendChild(configDIV);
+				
+
+				//Change class on accepted config elements - make them green 
+				fromHolder = fromHolder.map(function(elem){ return parseInt(elem)});
+				toHolder = toHolder.map(function(elem){ return parseInt(elem)});
+
+
+				if(fromHolder[0] == toHolder[0]){
+					//Vertical orientation
+					var verticalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+					verticalRows = verticalRows.filter(function(row, idx){return idx >= fromHolder[1] && idx <= toHolder[1]});
+
+					console.log("Vertical Rows: " + verticalRows.length);
+
+					verticalRows.forEach(function(row){
+						var cell = row.getElementsByTagName('TD')[fromHolder[0]];
+						cell.classList.add('registered-cell');
+					});
+				}else{
+					//horizontal orientation
+					var horizontalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+					horizontalRows = horizontalRows.filter(function(row, idx){return idx == fromHolder[1]});
+					
+					console.log("Horizontal Rows: " + horizontalRows.length);
+
+					[].slice.call(horizontalRows[0].getElementsByTagName('TD')).forEach(function(cell, idx){
+						if( idx >= fromHolder[0] && idx <= toHolder[0]){
+							cell.classList.add('registered-cell');
+						}
+					});
+				}
+
+
+			});
+		}
 
 		function handleSpaceBarPress(keyCode){
-			console.log("SpaceBar PRESS!");
 			if(keyCode == 32){
+				console.log("SpaceBar PRESS!");
+				var clonedElem$ = $(this).next();
 				$(this).toggleClass("vertical");
 
 				var horizontalMatrix = "matrix(1, 0, 0, 1, 0, 0)";
-				var transformVal = $(this).css("transform");
+				var transformVal = clonedElem$.css("transform");
 				if(transformVal.indexOf('matrix') != -1){
 					if(transformVal == horizontalMatrix){
 						console.log("Rotate to vertical!");
-						$(this).css("transform", "rotate(90deg)");
+						clonedElem$.css("transform", "rotate(90deg)");
 					} else {
 						console.log("Rotate to horizontal");
-						$(this).css("transform", "rotate(0deg)");
+						clonedElem$.css("transform", "rotate(0deg)");
 					}
 				} else {
-					$(this).css("transform", "rotate(90deg)");
+					clonedElem$.css("transform", "rotate(90deg)");
 				}
 			}
 		}
@@ -106,9 +219,240 @@ block head-content
 		function isDroppable(elem){
 			return elem.hasClass('innerDropSquare');
 		}
+	
+		function verifyElemSet(set){
+			return set.map(function(elem){return !(elem.hasClass('pending-cell') || elem.hasClass('registered-cell'))}).reduce(function(old, newElem){return old && newElem}, true);
+		}
+
+		function unHighlightElems(elems){
+			elems.forEach((elem) => {
+				elem.css({border: '1px solid black'});
+			});
+		}
+
+		//Register new boat
+		function registerBoat(elems){
+			var min = {X: null, Y: null};
+			var max = {X: -1, Y: -1};
+
+			elems.forEach((elem) => {
+				elem.removeClass('temp-hover');
+				elem.addClass('pending-cell');
+				var coord = getElemCoord(elem);
+				if(min.X == null){
+					min = coord;
+				}else if(coord.X < min.X || coord.Y < min.Y){
+					min = coord;
+				}
+
+				if(coord.X > max.X || coord.Y > max.Y){
+					max = coord;
+				}
+			});
+
+			//Append loading element
+			var loadingElem$ = $('<div/>').addClass('config').addClass('waiting').append( $('<p/>').text('Placing new boat...') );
+			$('.configContainer').append( loadingElem$ );
+
+			//Send boat register config
+			var boatSize = elems.length;
+			var minStr = min.X + "-" + min.Y;
+			var maxStr = max.X + "-" + max.Y; 
+			socket.emit('registerBoatConfig', {roomID: window.roomID, user: window.currUser, boatSize: boatSize, min: minStr, max: maxStr});
+		}
+	
+		function boatRegistered(data){
+			var boatType = [' ', 'Submarine', 'Destroyer', 'Cruiser', 'BattleShip', 'Warship'];
+			
+			//First waiting config
+			var firstWaitingConfig = document.querySelector('.sidePanel .config.waiting');
+			firstWaitingConfig.classList.remove('waiting');
+			
+			//Boat type paragraph
+			var p = firstWaitingConfig.getElementsByTagName('P')[0];
+			p.textContent = boatType[data.Size];
+			
+			//Create span with element description
+			var toHolder = data.To.split("-"); 
+			var toCol = String.fromCharCode(64 + parseInt(toHolder[0]));
+			var toRaw = parseInt(toHolder[1]);
+			var fromHolder = data.From.split("-"); 
+			var fromCol = String.fromCharCode(64 + parseInt(fromHolder[0]));
+			var fromRaw = parseInt(fromHolder[1]);
+			
+			var configDescSpan = document.createElement("SPAN");
+			var configDescSpan_Text = document.createTextNode(fromCol+fromRaw +"-"+ toCol+toRaw);
+			configDescSpan.appendChild(configDescSpan_Text);
+			configDescSpan.classList.add('configDesc');
+			
+			firstWaitingConfig.appendChild(configDescSpan);
+
+			//Add close element
+			var XSpan = document.createElement("SPAN");
+			var XSpan_Text = document.createTextNode("X");
+			XSpan.appendChild(XSpan_Text);
+			XSpan.addEventListener('click', removeConfig);
+			XSpan.classList.add('close');
+			XSpan.setAttribute('data-size', data.Size);
+			XSpan.setAttribute('data-to', data.To);
+			XSpan.setAttribute('data-from', data.From);
+
+			firstWaitingConfig.appendChild(XSpan);
+			
+			//Change class on accepted config elements - make them green 
+			fromHolder = fromHolder.map(function(elem){ return parseInt(elem)});
+			toHolder = toHolder.map(function(elem){ return parseInt(elem)});
+
+
+			if(fromHolder[0] == toHolder[0]){
+				//Vertical orientation
+				var verticalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+				verticalRows = verticalRows.filter(function(row, idx){return idx >= fromHolder[1] && idx <= toHolder[1]});
+
+				console.log("Vertical Rows: " + verticalRows.length);
+
+				verticalRows.forEach(function(row){
+					var cell = row.getElementsByTagName('TD')[fromHolder[0]];
+					cell.classList.remove('pending-cell');
+					cell.classList.add('registered-cell');
+				});
+			}else{
+				//horizontal orientation
+				var horizontalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+				horizontalRows = horizontalRows.filter(function(row, idx){return idx == fromHolder[1]});
+				
+				console.log("Horizontal Rows: " + horizontalRows.length);
+
+				[].slice.call(horizontalRows[0].getElementsByTagName('TD')).forEach(function(cell, idx){
+					if( idx >= fromHolder[0] && idx <= toHolder[0]){
+						cell.classList.remove('pending-cell');
+						cell.classList.add('registered-cell');
+					}
+				});
+			}
+
+			//Decrease the number of available boats
+			var shipCategorys = [].slice.call(document.getElementsByClassName('shipCategory')).reverse();
+			var spanElement = shipCategorys[data.Size-1].getElementsByTagName('SPAN')[0];
+			var textBeforeDecrease = spanElement.textContent;
+			var XIndex = textBeforeDecrease.toLowerCase().indexOf('x')+1;
+			var modifIndex = parseInt(textBeforeDecrease.substring(XIndex)) - 1;
+			spanElement.textContent = textBeforeDecrease.substring(0, XIndex) + modifIndex;
+			if(modifIndex <= 0){
+				spanElement.classList.remove('ship-available-count');
+				spanElement.classList.add('ship-disable-count');
+			}
+		}
+	
+		function boatNotRegistered(data){
+			//Remove first pending boat register request
+			var firstWaitingElem = document.getElementsByClassName('.configContainer')[0].getElementsByClassName('.waiting')[0];	
+			firstWaitingElem.parentNode.removeChild(firstWaitingElem);
+
+			var fromHolder = data.From.split('-').map(function(elem){return parseInt(elem)});
+			var toHolder = data.To.split('-').map(function(elem){return parseInt(elem)});
+
+			if(fromHolder[0] == toHolder[0]){
+				//Vertical orientation
+				var verticalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+				verticalRows = verticalRows.filter(function(row, idx){return idx >= fromHolder[1] && idx <= toHolder[1]});
+
+				verticalRows.forEach(function(row){
+					var cell = row.getElementsByTagName('TD')[fromHolder[0]];
+					cell.classList.remove('pending-cell');
+				});
+			}else{
+				//horizontal orientation
+				var horizontalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+				horizontalRows = horizontalRows.filter(function(row, idx){return idx == fromHolder[1]});
+				
+				console.log("Horizontal Rows: " + horizontalRows.length);
+
+				[].slice.call(horizontalRows[0].getElementsByTagName('TD')).forEach(function(cell, idx){
+					if( idx >= fromHolder[0] && idx <= toHolder[0]){
+						cell.classList.remove('pending-cell');
+					}
+				});
+			}
+		}
+
+		function removeConfig(event){
+			var toRemElem = event.target;
+			var size = toRemElem.getAttribute('data-size');
+			var to = toRemElem.getAttribute('data-to');
+			var from = toRemElem.getAttribute('data-from');
+			
+			socket.emit('removeBoatConfig', {Size: size, From: from, To: to, RoomID: window.roomID, User: window.currUser});
+		}
+
+		function boatRemoved(data){
+			//Data sample: {"Size":"3","From":"1-4","To":"3-4"}
+			
+			//Remove element from configContainer
+			var configElements = [].slice.call(document.getElementsByClassName('configContainer')[0].getElementsByClassName('config'));
+			configElements.forEach(function(config){
+				var closeElem = config.getElementsByClassName('close')[0];
+				if(closeElem.getAttribute('data-size') == data.Size && closeElem.getAttribute('data-from') == data.From && closeElem.getAttribute('data-to') == data.To){
+					config.parentNode.removeChild(config);
+				}
+
+				//Remove highlited squares
+				fromHolder = data.From.split('-');
+				toHolder = data.To.split('-');
+
+				fromHolder = fromHolder.map(function(elem){ return parseInt(elem)});
+				toHolder = toHolder.map(function(elem){ return parseInt(elem)});
+
+				if(fromHolder[0] == toHolder[0]){
+					//Vertical orientation
+					var verticalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+					verticalRows = verticalRows.filter(function(row, idx){return idx >= fromHolder[1] && idx <= toHolder[1]});
+
+					verticalRows.forEach(function(row){
+						var cell = row.getElementsByTagName('TD')[fromHolder[0]];
+						cell.classList.remove('registered-cell');
+					});
+				}else{
+					//horizontal orientation
+					var horizontalRows = [].slice.call(document.getElementsByClassName('grid')[0].getElementsByTagName('tr'));
+					horizontalRows = horizontalRows.filter(function(row, idx){return idx == fromHolder[1]});
+					
+					[].slice.call(horizontalRows[0].getElementsByTagName('TD')).forEach(function(cell, idx){
+						if( idx >= fromHolder[0] && idx <= toHolder[0]){
+							cell.classList.remove('registered-cell');
+						}
+					});
+				}
+
+				//Increase boat available number
+				var shipCategorys = [].slice.call(document.getElementsByClassName('shipCategory')).reverse();
+				var spanElement = shipCategorys[data.Size-1].getElementsByTagName('SPAN')[0];
+				var textBeforeDecrease = spanElement.textContent;
+				var XIndex = textBeforeDecrease.toLowerCase().indexOf('x')+1;
+				var modifIndex = parseInt(textBeforeDecrease.substring(XIndex)) + 1;
+				spanElement.textContent = textBeforeDecrease.substring(0, XIndex) + modifIndex;
+				if(!spanElement.classList.contains('ship-available-count')){
+					spanElement.classList.add('ship-available-count');
+					if(spanElement.classList.contains('ship-disable-count'))
+						spanElement.classList.remove('ship-disable-count');
+				}
+			});
+		}
+	
+		function boatNotRemoved(){
+			console.log("<configBoard - boatNotRemoved> Boat not removed!");
+		}
+	
+
+		function getElemCoord(elem){
+			return {X: elem.prevAll().length, Y: elem.parent().prevAll().length};
+		}
+	
 
 block main-content
 	#wrapper
+		span#room(style="display: none;")= roomID
+		span#user(style="display: none;")= user.Username
 		.grid
 			table
 				- for(var idx1 = 0; idx1 < 11; idx1++) {
@@ -124,73 +468,131 @@ block main-content
 						td.innerDropSquare &nbsp;
 					- }
 				- }
-		.ships
-			center
-				h2 Artillery
-			table
-				tr.shipCategory
-					td Warships
-						- if(ships && typeof ships.warships.number != "undefined")
-							|X#{ships.warships.number}
-						- else
-							|#[span(style="color:yellow") &nbsp; X2]		
-				tr
-					td  
-						table#5.innerTable 
-							tr
-								td &nbsp; 
-								td &nbsp;
-								td &nbsp;
-								td &nbsp;
-								td &nbsp;
-				tr.shipCategory
-					td BattleShip
-						- if(ships && typeof ships.battleship.number != "undefined")
-							|X#{ships.battleship.number}
-						- else
-							|#[span(style="color:yellow") &nbsp; X1]		
-				tr
-					td
-						table#4.innerTable
-							tr
-								td &nbsp; 
-								td &nbsp;
-								td &nbsp;
-								td &nbsp;
-				tr.shipCategory
-					td Cruiser
-						- if(ships && typeof ships.cruiser.number != "undefined")
-							|X#{ships.cruiser.number}
-						- else
-							|#[span(style="color:yellow") &nbsp; X1]						
-				tr
-					td 
-						table#3.innerTable
-							tr
-								td &nbsp; 
-								td &nbsp;
-								td &nbsp;
-				tr.shipCategory
-					td Destroyer
-						- if(ships && typeof ships.destroyer.number != "undefined")
-							|X#{ships.destroyer.number}
-						- else
-							|#[span(style="color:yellow") &nbsp; X2]		
-				tr
-					td 
-						table#2.innerTable 
-							tr
-								td &nbsp; 
-								td &nbsp;
-				tr.shipCategory
-					td Submarine 
-						- if(ships && typeof ships.submarine.number != "undefined")
-							|X#{ships.submarine.number}
-						- else
-							|#[span(style="color:yellow") &nbsp; X2]		
-				tr
-					td 
-						table#1.innerTable 
-							tr
-								td &nbsp; 
-
+		.sidePanel
+			.ships
+				center
+					h2 Artillery
+				table
+					tr.shipCategory
+						td Warships
+							- if(ships && typeof ships.warships.number != "undefined")
+								- if(ships.warships.number > 0) 
+									span.ship-available-count &nbsp; X#{ships.warships.number}
+								-else
+									span.ship-disable-count &nbsp; X0
+							- else
+								|#[span(style="color:yellow") &nbsp; X2]		
+					tr
+						td  
+							- var isDraggable = ships && typeof ships.warships.number != "undefined" && ships.warships.number > 0 
+							if isDraggable
+								table#5.innerTable.draggable
+									tr
+										td &nbsp; 
+										td &nbsp;
+										td &nbsp;
+										td &nbsp;
+										td &nbsp;
+							else
+								table#5.innerTable
+									tr
+										td &nbsp; 
+										td &nbsp;
+										td &nbsp;
+										td &nbsp;
+										td &nbsp;
+					tr.shipCategory
+						td BattleShip
+							- if(ships && typeof ships.battleship.number != "undefined")
+								- if(ships.battleship.number > 0)
+									span.ship-available-count &nbsp; X#{ships.battleship.number}
+								- else 
+									span.ship-disable-count &nbsp; X0
+							- else
+								|#[span(style="color:yellow") &nbsp; X1]		
+					tr
+						td
+							- var isDraggable = ships && typeof ships.battleship.number != "undefined" && ships.battleship.number > 0
+							if isDraggable
+								table#4.innerTable.draggable
+									tr
+										td &nbsp; 
+										td &nbsp;
+										td &nbsp;
+										td &nbsp;
+							else
+								table#4.innerTable
+									tr
+										td &nbsp; 
+										td &nbsp;
+										td &nbsp;
+										td &nbsp;
+					tr.shipCategory
+						td Cruiser
+							- if(ships && typeof ships.cruiser.number != "undefined")
+								- if(ships.cruiser.number > 0)
+									span.ship-available-count &nbsp; X#{ships.cruiser.number}
+								- else
+									span.ship-disable-count &nbsp; X0
+							- else
+								|#[span(style="color:yellow") &nbsp; X1]						
+					tr
+						td 
+							- var isDraggable = ships && typeof ships.cruiser.number != "undefined" && ships.cruiser.number > 0
+							if isDraggable
+								table#3.innerTable.draggable
+									tr
+										td &nbsp; 
+										td &nbsp;
+										td &nbsp;
+							else
+								table#3.innerTable
+									tr
+										td &nbsp; 
+										td &nbsp;
+										td &nbsp;
+					tr.shipCategory
+						td Destroyer
+							- if(ships && typeof ships.destroyer.number != "undefined")
+								- if(ships.destroyer.number > 0)
+									span.ship-available-count &nbsp; X#{ships.destroyer.number}
+								- else
+									span.ship-disable-count &nbsp; X0
+							- else
+								|#[span(style="color:yellow") &nbsp; X2]		
+					tr
+						td 
+							- var isDraggable = ships && typeof ships.destroyer.number != "undefined" && ships.destroyer.number > 0
+							if isDraggable
+								table#2.innerTable.draggable
+									tr
+										td &nbsp; 
+										td &nbsp;
+							else
+								table#2.innerTable
+									tr
+										td &nbsp; 
+										td &nbsp;
+					tr.shipCategory
+						td Submarine 
+							- if(ships && typeof ships.submarine.number != "undefined")
+								- if(ships.submarine.number > 0)
+									span.ship-available-count &nbsp; X#{ships.submarine.number}
+								- else 
+									span.ship-disable-count &nbsp; X0
+							- else
+								|#[span(style="color:yellow") &nbsp; X2]		
+					tr
+						td
+							- var isDraggable = ships && typeof ships.submarine.number != "undefined" && ships.submarine.number > 0
+							if isDraggable
+								table#1.innerTable.draggable 
+									tr
+										td &nbsp; 
+							else
+								table#1.innerTable
+									tr
+										td &nbsp; 
+			.configContainer
+			.startBattleContainer
+				

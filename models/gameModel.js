@@ -1,6 +1,5 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var BoatConfig = require('./boatConfigModel').schema;
 
 var gameSchema = new Schema({
 	User1: {
@@ -8,13 +7,21 @@ var gameSchema = new Schema({
 		ref: 'User',
 		required: true
 	},
-	BoatConfig1: BoatConfig, 
+	BoatConfig1: [{
+		Size: Number, 
+		To: String,
+		From: String
+	}], 
 	User2: {
 		type: Schema.ObjectId,
 		ref: 'User',
 		required: true
 	},
-	BoatConfig2: BoatConfig,
+	BoatConfig2: [{
+		Size: Number, 
+		To: String,
+		From: String
+	}],
 	GameRoom: String 
 });
 

@@ -10,7 +10,8 @@ block main-content
 			window.onload = function(){
 				
 				var curretUser = document.getElementById('loggedInUser').textContent;
-
+				var gameRoomID = -1;
+				
 				var allUsersInterval;
 				socket.on('error', function(){
 					console.log("Error!");
@@ -18,10 +19,11 @@ block main-content
 				});
 				
 				//Initial get ALL users request - request each 2 sec
-				allUsersInterval = setInterval(function(){
+				allUsersInterval = setInterval(function request(){
 					socket.emit('getAllUsers', {currentUser: curretUser});
 					socket.emit('getAllInvites', {currentUser: curretUser});
-				}, 5000);
+					return request;
+				}(), 5000);
 				
 				socket.on('allUsersList', allUserReciver);
 
@@ -145,12 +147,17 @@ block main-content
 				function acceptInvite(event){
 					var elem = event.target;
 					var inviteSender = elem.parentNode.getElementsByClassName('senderName')[0].textContent;
+					//- console.log("Invite sender id: " + inviteSender);
 					socket.emit('createRoom', {from: inviteSender, to: curretUser});
 				}
 
 				function startConfiguration(data){
-					//- window.location = "/gameRoom";
-					console.log("StartConfig => " + JSON.stringify(data));
+					if(data.users.indexOf(curretUser) != -1){
+						console.log("RoomID: " + data.room);
+						console.log("Redirecting to game room!");
+						
+						window.location = "/gameRoom?roomID=" + data.room;
+					}
 				}
 			};
 

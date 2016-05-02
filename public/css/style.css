@@ -159,13 +159,17 @@ div.formContainer .formEntry {
 
 /** Board configuration - Grid Container **/
 #wrapper {
-	overflow: auto;
+	overflow: hidden;
 }
 
-.grid, .ships {
+
+.grid{
 	float: left;
 }
 
+.sidePanel{
+	float: right;
+}
 
 .grid table {
 	empty-cells: show;
@@ -177,6 +181,7 @@ div.formContainer .formEntry {
 
 .grid table tr td.innerDropSquare { 
 	border: 1px solid black;
+	z-index: 1;
 }
 
 
@@ -189,15 +194,34 @@ div.formContainer .formEntry {
 	text-align: center;
 }
 
+.temp-hover{
+	border: 2px solid red !important;
+	z-index: 2;
+}
+
+.pending-cell {
+	border: 2px solid #ABABAB !important; 
+}
+
+.registered-cell{
+	border: 2px solid #56E01F !important;	
+}
 
 
 
 
+
+
+
+/*Side panel*/
+.sidePanel{
+	position: relative;
+}
 
 /*Available ships*/
 .ships { 
 	background-image: url('/img/camoPattern.jpg');
-	margin-left: 10px;
+	margin-bottom: 10px;
 	padding: 10px;
 }
  
@@ -218,6 +242,51 @@ div.formContainer .formEntry {
 	width: 20px;
 	height: 20px;
 }
+
+.ship-available-count{
+	color: yellow;
+}
+
+.ship-disable-count{
+	color: red;
+}
+
+
+
+/*BoatConfig*/
+.configContainer{
+	border: 2px solid black;
+	width: 156px;
+	height: 310px;
+	padding: 10px;
+	overflow: auto;
+}
+
+.configContainer .config {
+	font-size: 11px;
+	margin-bottom: 5px;	
+}
+
+.configContainer .config:hover {
+	background-color: rgba(217, 59, 59, 0.4);
+}
+
+.config.waiting {
+	background-color: rgba(191, 191, 191, 1);
+}
+
+.configContainer .close {
+	position: relative;
+	float: right;
+	bottom: 5px;
+}
+
+.configContainer .close:hover {
+	color: red;
+	cursor: pointer;
+}
+
+/*Start battle container*/
 
 
 
