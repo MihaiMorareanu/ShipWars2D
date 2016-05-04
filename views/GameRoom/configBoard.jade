@@ -10,14 +10,19 @@ block head-content
 
 			//On refresh render CurrentConfig
 			var currConfig = JSON.parse( $('<textarea/>').html('#{currConfig}').text() );
+			var passedTime = '#{passedTime}';
+			
+			console.log('Passed time: ' + passedTime);
+
 			placeCurrentConfig(currConfig);			
-
-
+			
 
 			/*****      SOCKET JOBS      ******/
 			socket.on('error', function(err){
 				console.log("Error: " + err.message);
 			});
+
+			socket.emit('room:connected', {roomID: window.roomID});
 						
 			socket.on('boatRegistered', boatRegistered);
 
@@ -26,6 +31,10 @@ block head-content
 			socket.on('boatRemoved', boatRemoved);
 			
 			socket.on('boatNotRemoved', boatNotRemoved);
+
+			socket.on('startBattle', gameStarted);
+
+			socket.on('gameStatus', gameStatus);
 
 
 
@@ -180,8 +189,7 @@ block head-content
 						}
 					});
 				}
-
-
+				
 			});
 		}
 
@@ -260,7 +268,7 @@ block head-content
 			var maxStr = max.X + "-" + max.Y; 
 			socket.emit('registerBoatConfig', {roomID: window.roomID, user: window.currUser, boatSize: boatSize, min: minStr, max: maxStr});
 		}
-	
+
 		function boatRegistered(data){
 			var boatType = [' ', 'Submarine', 'Destroyer', 'Cruiser', 'BattleShip', 'Warship'];
 			
@@ -337,11 +345,17 @@ block head-content
 			var textBeforeDecrease = spanElement.textContent;
 			var XIndex = textBeforeDecrease.toLowerCase().indexOf('x')+1;
 			var modifIndex = parseInt(textBeforeDecrease.substring(XIndex)) - 1;
+
 			spanElement.textContent = textBeforeDecrease.substring(0, XIndex) + modifIndex;
 			if(modifIndex <= 0){
 				spanElement.classList.remove('ship-available-count');
 				spanElement.classList.add('ship-disable-count');
+				
+				//Make element not draggable
+				var draggableTable = document.getElementById(data.Size);
+				$(draggableTable).draggable('disable');
 			}
+
 		}
 	
 		function boatNotRegistered(data){
@@ -390,10 +404,27 @@ block head-content
 			
 			//Remove element from configContainer
 			var configElements = [].slice.call(document.getElementsByClassName('configContainer')[0].getElementsByClassName('config'));
-			configElements.forEach(function(config){
+			configElements.forEach(function(config, idx){
 				var closeElem = config.getElementsByClassName('close')[0];
 				if(closeElem.getAttribute('data-size') == data.Size && closeElem.getAttribute('data-from') == data.From && closeElem.getAttribute('data-to') == data.To){
 					config.parentNode.removeChild(config);
+					
+					//Increase boat available number
+					var shipCategorys = [].slice.call(document.getElementsByClassName('shipCategory')).reverse();
+					var spanElement = shipCategorys[data.Size-1].getElementsByTagName('SPAN')[0];
+					var textBeforeDecrease = spanElement.textContent;
+					var XIndex = textBeforeDecrease.toLowerCase().indexOf('x')+1;
+					var modifIndex = parseInt(textBeforeDecrease.substring(XIndex)) + 1;
+					spanElement.textContent = textBeforeDecrease.substring(0, XIndex) + modifIndex;
+					if(!spanElement.classList.contains('ship-available-count')){
+						spanElement.classList.add('ship-available-count');
+						if(spanElement.classList.contains('ship-disable-count'))
+							spanElement.classList.remove('ship-disable-count');
+						
+						//Make element draggable
+						var draggableTable = document.getElementById(data.Size);
+						$(draggableTable).draggable('enable');
+					}	
 				}
 
 				//Remove highlited squares
@@ -423,31 +454,65 @@ block head-content
 						}
 					});
 				}
-
-				//Increase boat available number
-				var shipCategorys = [].slice.call(document.getElementsByClassName('shipCategory')).reverse();
-				var spanElement = shipCategorys[data.Size-1].getElementsByTagName('SPAN')[0];
-				var textBeforeDecrease = spanElement.textContent;
-				var XIndex = textBeforeDecrease.toLowerCase().indexOf('x')+1;
-				var modifIndex = parseInt(textBeforeDecrease.substring(XIndex)) + 1;
-				spanElement.textContent = textBeforeDecrease.substring(0, XIndex) + modifIndex;
-				if(!spanElement.classList.contains('ship-available-count')){
-					spanElement.classList.add('ship-available-count');
-					if(spanElement.classList.contains('ship-disable-count'))
-						spanElement.classList.remove('ship-disable-count');
-				}
+				
 			});
 		}
 	
 		function boatNotRemoved(){
 			console.log("<configBoard - boatNotRemoved> Boat not removed!");
 		}
-	
 
 		function getElemCoord(elem){
 			return {X: elem.prevAll().length, Y: elem.parent().prevAll().length};
 		}
 	
+		function startBattleRequest(event){
+			var elem = event.target;
+			socket.emit('startBattleRequest', {User: window.currUser, Room: window.roomID});
+		}
+
+		function gameStarted(data){
+			
+			
+
+			if(data.hasOwnProperty('User') && data.User == window.currUser){
+				
+				var warningMsg = document.getElementsByClassName('warningMsg')[0];
+				if(warningMsg.classList.contains('hidden'))
+					warningMsg.classList.remove('hidden');
+				
+				var timer = document.getElementById('remainigTime');
+				var counter = setInterval(function(){
+					var decreasedVal = parseInt(timer.textContent)-1;
+					timer.textContent = decreasedVal;
+					if(decreasedVal == 0){
+						clearInterval(counter);
+						
+						//Send configuration as it is for the last time
+						socket.emit('startBattleRequest', {User: window.currUser, Room: window.roomID});
+					}
+				}, 1000);
+
+			}else{
+				//Show wait message
+				var waitMsg = document.getElementsByClassName('waitMsg')[0];
+				if(waitMsg.classList.contains('hidden'))
+					waitMsg.classList.remove('hidden');
+
+				//TODO: Disable all close signs from boats	
+				//TODO: Disable "Start Battle" button
+			}
+
+			console.log('Start new game!');
+		}
+
+		function gameStatus(data){
+			if(data.lost.User == window.currUser)
+				console.log('Game lost!');
+			else if(data.win.User == window.currUser)
+				console.log('Game win');
+		}
+		
 
 block main-content
 	#wrapper
@@ -468,6 +533,29 @@ block main-content
 						td.innerDropSquare &nbsp;
 					- }
 				- }
+
+			if (ships.warships.number * ships.warships.number * ships.warships.number * ships.warships.number) != 0 && passedTime.length > 0
+				.warningMsg
+					center
+						p Hurry up! The other player has placed his boats and is waiting for you!
+						p You have #[span#remainigTime= passedTime] seconds left... 
+			
+			else
+				.warningMsg.hidden
+					center
+						p Hurry up! The other player has placed his boats and is waiting for you!
+						p You have #[span#remainigTime 60] seconds left... 
+				
+			if ships.warships.number == 0 && ships.warships.number == 0 && ships.warships.number == 0 && ships.warships.number == 0 && passedTime.length > 0
+				.waitMsg
+					center
+						p Please wait until the opponent is placing his boats
+						P You will have to wait maximum 60 seconds 
+			else
+				.waitMsg.hidden
+					center
+						p Please wait until the opponent is placing his boats
+						P You will have to wait maximum 60 seconds
 		.sidePanel
 			.ships
 				center
@@ -595,4 +683,6 @@ block main-content
 										td &nbsp; 
 			.configContainer
 			.startBattleContainer
-				
+				center
+					span#startGame(onclick="startBattleRequest(event)") Start Battle
+						

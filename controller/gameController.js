@@ -16,7 +16,8 @@ module.exports = {
 				destroyer: {number: 2},
 				submarine: {number: 2}
 			},
-			currConfig: []
+			currConfig: [],
+			passedTime: ''
 		}
 
 		var savedRoomID = null;
@@ -62,8 +63,17 @@ module.exports = {
 						break;
 				}
 			});
+
 			boatConfig.currConfig = JSON.stringify(boatConfigTemp);
-			console.log("<gameController - gameRoom> ToReturn config: " + boatConfig.currConfig);
+			// console.log("<gameController - gameRoom> ToReturn config: " + boatConfig.currConfig);
+
+			
+			console.log("Game time: " + game.startTime);
+			console.log("Cond" + (game.hasOwnProperty('startTime') && game.startTime != null && typeof game.startTime != "undefined" && game.startTime.split(' ').join('').length > 0));
+			if(game.hasOwnProperty('startTime') && game.startTime != null && typeof game.startTime != "undefined" && game.startTime.split(' ').join('').length > 0 ){
+				console.log("Remaining time: " + (60 - (Date.now() - parseInt(game.startTime))/ 1000));
+				boatConfig.passedTime = 60 - (Date.now() - parseInt(game.startTime))/ 1000;
+			}
 
 			res.render('GameRoom/configBoard', boatConfig);
 		})

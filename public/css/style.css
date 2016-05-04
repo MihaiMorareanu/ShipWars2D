@@ -24,7 +24,7 @@ a:hover{
 	background-color: #7090E5;
 	top: 100px;
 	width: 900px;
-	min-height: 700px;
+	min-height: 720px;
 	margin: auto;
 }
 
@@ -159,7 +159,7 @@ div.formContainer .formEntry {
 
 /** Board configuration - Grid Container **/
 #wrapper {
-	overflow: hidden;
+	/*overflow: hidden;*/
 }
 
 
@@ -287,6 +287,19 @@ div.formContainer .formEntry {
 }
 
 /*Start battle container*/
+.startBattleContainer #startGame{
+	position: relative;
+	padding: 5px;	
+	top:10px;
+	background-color: #808080;
+}
+
+#startGame:hover{
+	box-shadow: 0 0 6px #797979;
+	cursor: pointer;
+	top:11px;
+}
+
 
 
 
@@ -302,4 +315,8 @@ div.formContainer .formEntry {
 
 .inline{
 	display: inline;
+}
+
+.hidden{
+	display: none;
 }

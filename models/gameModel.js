@@ -22,7 +22,8 @@ var gameSchema = new Schema({
 		To: String,
 		From: String
 	}],
-	GameRoom: String 
+	GameRoom: String,
+	startTime: String 
 });
 
 module.exports = mongoose.model('Game', gameSchema);
