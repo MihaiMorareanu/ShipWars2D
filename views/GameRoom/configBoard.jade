@@ -11,10 +11,8 @@ block head-content
 			//On refresh render CurrentConfig
 			var currConfig = JSON.parse( $('<textarea/>').html('#{currConfig}').text() );
 			var passedTime = '#{passedTime}';
-			
-			console.log('Passed time: ' + passedTime);
 
-			placeCurrentConfig(currConfig);			
+			placeCurrentConfig(currConfig, passedTime);			
 			
 
 			/*****      SOCKET JOBS      ******/
@@ -55,7 +53,6 @@ block head-content
 						registerBoat(modifiedCells);							
 					}
 
-					//TODO: Decrease number of boats to select
 				},
 				over: function(event, ui){
 					//Put listener on spacebar
@@ -116,7 +113,7 @@ block head-content
 			});
 		};
 
-		function placeCurrentConfig(configurations){
+		function placeCurrentConfig(configurations, passedTime){
 			var boatType = [' ', 'Submarine', 'Destroyer', 'Cruiser', 'BattleShip', 'Warship'];
 			
 			var configContainerElement = document.getElementsByClassName('configContainer')[0];
@@ -189,8 +186,43 @@ block head-content
 						}
 					});
 				}
-				
 			});
+
+			//Place passed time
+			if(passedTime && typeof passedTime != "undefined" && passedTime.length > 0){
+				if(configurations.length < 8){
+					var warningMsgElem = document.getElementsByClassName('warningMsg')[0];
+					
+					if(warningMsgElem.classList.contains('hidden'))
+						warningMsgElem.classList.remove('hidden');
+					
+					var passedTimeVal = Math.ceil(parseInt(passedTime));
+					
+					var timer = document.getElementById('remainigTime');
+
+					if(passedTimeVal <= 0){
+						timer.textContent = 0;
+						socket.emit('startBattleRequest', {User: window.currUser, Room: window.roomID});
+					}else{
+						timer.textContent = passedTimeVal;
+						var counter = setInterval(function(){
+							var decreasedVal = parseInt(timer.textContent)-1;
+							timer.textContent = decreasedVal;
+							if(decreasedVal == 0){
+								clearInterval(counter);
+								
+								//Send configuration as it is for the last time
+								socket.emit('startBattleRequest', {User: window.currUser, Room: window.roomID});
+							}
+						}, 1000);
+					}
+
+				}else if(configurations.length == 8){
+					var waitElem = document.getElementsByClassName('waitMsg')[0];
+					if(waitElem.classList.contains('hidden'))
+						waitElem.classList.remove('hidden');
+				}
+			}
 		}
 
 		function handleSpaceBarPress(keyCode){
@@ -467,50 +499,66 @@ block head-content
 		}
 	
 		function startBattleRequest(event){
-			var elem = event.target;
 			socket.emit('startBattleRequest', {User: window.currUser, Room: window.roomID});
 		}
 
 		function gameStarted(data){
-			
-			
 
-			if(data.hasOwnProperty('User') && data.User == window.currUser){
+			if(data.User && typeof data.User != "undefined"){
+				if(data.User == window.currUser){
+					//Show warning message
+					var warningMsg = document.getElementsByClassName('warningMsg')[0];
+					if(warningMsg.classList.contains('hidden'))
+						warningMsg.classList.remove('hidden');
+					
+					var timer = document.getElementById('remainigTime');
+					var counter = setInterval(function(){
+						var decreasedVal = parseInt(timer.textContent)-1;
+						timer.textContent = decreasedVal;
+						if(decreasedVal == 0){
+							clearInterval(counter);
+							
+							//Send configuration as it is for the last time
+							socket.emit('startBattleRequest', {User: window.currUser, Room: window.roomID});
+						}
+					}, 1000);
 				
-				var warningMsg = document.getElementsByClassName('warningMsg')[0];
-				if(warningMsg.classList.contains('hidden'))
-					warningMsg.classList.remove('hidden');
-				
-				var timer = document.getElementById('remainigTime');
-				var counter = setInterval(function(){
-					var decreasedVal = parseInt(timer.textContent)-1;
-					timer.textContent = decreasedVal;
-					if(decreasedVal == 0){
-						clearInterval(counter);
-						
-						//Send configuration as it is for the last time
-						socket.emit('startBattleRequest', {User: window.currUser, Room: window.roomID});
-					}
-				}, 1000);
+				}else{
+					//Show wait message
+					var waitMsg = document.getElementsByClassName('waitMsg')[0];
+					if(waitMsg.classList.contains('hidden'))
+						waitMsg.classList.remove('hidden');
+
+					var sidePanel = document.getElementsByClassName('sidePanel')[0];
+					var closeButtons = [].slice.call(sidePanel.getElementsByClassName('close'));
+					
+					closeButtons.forEach(function(closeBtn){
+						closeBtn.removeEventListener('click', removeConfig);
+					});
+
+					var startGameElem = document.getElementById('startGame');
+					startGameElem.removeEventListener('click', startBattleRequest);
+					startGameElem.onclick = null;
+				}
 
 			}else{
-				//Show wait message
-				var waitMsg = document.getElementsByClassName('waitMsg')[0];
-				if(waitMsg.classList.contains('hidden'))
-					waitMsg.classList.remove('hidden');
-
-				//TODO: Disable all close signs from boats	
-				//TODO: Disable "Start Battle" button
+				console.log('Start new game!');
 			}
-
-			console.log('Start new game!');
 		}
 
 		function gameStatus(data){
-			if(data.lost.User == window.currUser)
-				console.log('Game lost!');
-			else if(data.win.User == window.currUser)
-				console.log('Game win');
+			console.log("Game status: " + JSON.stringify(data));
+			if(data && typeof data != "undefined" && data.lost && typeof data.lost != "undefined"){
+				if(data.lost.User == window.currUser)
+					console.log('Game lost!');
+				else if(data.win.User == window.currUser)
+					console.log('Game win!. Points: ' + data.win.Points);
+				
+				window.location="/";
+			}else{
+				console.log("Start game!");
+				window.location ="/gameRoom?roomID=" + window.roomID;
+			}
 		}
 		
 
@@ -534,28 +582,16 @@ block main-content
 					- }
 				- }
 
-			if (ships.warships.number * ships.warships.number * ships.warships.number * ships.warships.number) != 0 && passedTime.length > 0
-				.warningMsg
-					center
-						p Hurry up! The other player has placed his boats and is waiting for you!
-						p You have #[span#remainigTime= passedTime] seconds left... 
+			.warningMsg.hidden
+				center
+					p Hurry up! The other player has placed his boats and is waiting for you!
+					p You have #[span#remainigTime 60] seconds left... 
 			
-			else
-				.warningMsg.hidden
-					center
-						p Hurry up! The other player has placed his boats and is waiting for you!
-						p You have #[span#remainigTime 60] seconds left... 
-				
-			if ships.warships.number == 0 && ships.warships.number == 0 && ships.warships.number == 0 && ships.warships.number == 0 && passedTime.length > 0
-				.waitMsg
-					center
-						p Please wait until the opponent is placing his boats
-						P You will have to wait maximum 60 seconds 
-			else
-				.waitMsg.hidden
-					center
-						p Please wait until the opponent is placing his boats
-						P You will have to wait maximum 60 seconds
+			.waitMsg.hidden
+				center
+					p Please wait until the opponent is placing his boats
+					P You will have to wait maximum 60 seconds
+
 		.sidePanel
 			.ships
 				center

@@ -48,6 +48,8 @@ userSchema
 userSchema.pre('save', function(next){
         var user = this;
 
+        console.log("<userModel - presave>!");
+
         if(!user.isModified('Password')) return next();
 
         bcrypt.genSalt(SALT, function(err, salt){

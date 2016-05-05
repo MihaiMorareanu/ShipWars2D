@@ -1,7 +1,7 @@
 var Game = require('../models/gameModel');
 
 module.exports = {
-	gameRoom: function(req, res){
+	configBoard: function(req, res){
 		
 		//[Size: 5] - 2
 		//[Size: 4] - 1
@@ -69,10 +69,9 @@ module.exports = {
 
 			
 			console.log("Game time: " + game.startTime);
-			console.log("Cond" + (game.hasOwnProperty('startTime') && game.startTime != null && typeof game.startTime != "undefined" && game.startTime.split(' ').join('').length > 0));
-			if(game.hasOwnProperty('startTime') && game.startTime != null && typeof game.startTime != "undefined" && game.startTime.split(' ').join('').length > 0 ){
+			if(game.startTime != null && (typeof game.startTime != "undefined") && game.startTime.length > 0){
 				console.log("Remaining time: " + (60 - (Date.now() - parseInt(game.startTime))/ 1000));
-				boatConfig.passedTime = 60 - (Date.now() - parseInt(game.startTime))/ 1000;
+				boatConfig.passedTime = "" + (60 - (Date.now() - parseInt(game.startTime))/ 1000);
 			}
 
 			res.render('GameRoom/configBoard', boatConfig);
@@ -80,5 +79,51 @@ module.exports = {
 		.catch(function(err){
 			console.log("<gameController - gameRoom> Error: " + err.message);
 		});
+	},
+	gameRoom: function(req, res){
+
+		var savedRoomID = null;
+		var userID = req.session.user._id;
+		if(req.session.roomID && typeof req.session.roomID != "undefined"){
+			savedRoomID = req.session.roomID;
+		}else{
+			res.locals.roomID = req.query.roomID;
+			savedRoomID = req.query.roomID;
+		}
+
+		//Make query on Game
+		Game
+		.findOne({GameRoom: savedRoomID})
+		.populate("User1 User2")
+		.then(function(game){
+			if(game == null || typeof game == "undefined") throw new Error("Game isn't found");
+			var myConfig = null, myHits = null, myMiss = null, opMiss = null, opHits = null;
+			
+			if(userID.toString() == game.User1._id.toString()){
+				myConfig = game.BoatConfig1;
+				myMiss = game.Miss1;
+				myHits = game.BoatConfig2.map(function(config){ return config.Hits});
+				opMiss = game.Miss2;
+				opHits = myConfig.filter(function(config) {return config.Hits});
+			}else if(userID.toString() == game.User2._id.toString()){
+				myConfig = game.BoatConfig2;
+				myHits = game.BoatConfig1.map(function(config){ return config.Hits});
+				myMiss = game.Miss2;
+				opMiss = game.Miss1;
+				opHits = myConfig.filter(function(config) {return config.Hits});
+			}
+
+			var toSend = {MasterConfig: null};
+			var tempHolder = {MasterConfig: {My: {Hits: myHits, Config: myConfig, Miss: myMiss}, Op: {Hits: opHits, Miss: opMiss}}};
+			toSend.MasterConfig = JSON.stringify(tempHolder);
+
+			res.render('GameRoom/gameRoom', toSend);
+
+		})
+		.catch(function(err){
+			console.log("<gameController - gameRoom> Error: " + err.message);
+		});
+
+
 	}
 }

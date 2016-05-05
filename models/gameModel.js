@@ -10,8 +10,11 @@ var gameSchema = new Schema({
 	BoatConfig1: [{
 		Size: Number, 
 		To: String,
-		From: String
+		From: String,
+		Hits: []
 	}], 
+	// If User1 miss when attack User2 then miss is registered in Miss1
+	Miss1: [String],
 	User2: {
 		type: Schema.ObjectId,
 		ref: 'User',
@@ -20,8 +23,11 @@ var gameSchema = new Schema({
 	BoatConfig2: [{
 		Size: Number, 
 		To: String,
-		From: String
+		From: String,
+		Hits: []
 	}],
+	// If User2 miss when attack User1 then miss is registered in Miss2
+	Miss2: [String],
 	GameRoom: String,
 	startTime: String 
 });

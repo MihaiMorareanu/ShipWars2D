@@ -15,6 +15,8 @@ router.get('/register', function(req, res){
 
 /* GET home page. */
 router.get('/', function(req, res, next) {	
+	if(req.session.roomID && typeof req.session.roomID != "undefined")
+		req.session.roomID = null;	
 	res.render('index');
 });
 
@@ -26,6 +28,8 @@ router.get('/', function(req, res, next) {
 
 
 
+
+router.get('/configBoard', helpers.requireAuth, Game.configBoard);
 
 router.get('/gameRoom', helpers.requireAuth, Game.gameRoom);
 

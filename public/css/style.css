@@ -159,7 +159,6 @@ div.formContainer .formEntry {
 
 /** Board configuration - Grid Container **/
 #wrapper {
-	/*overflow: hidden;*/
 }
 
 
@@ -298,6 +297,48 @@ div.formContainer .formEntry {
 	box-shadow: 0 0 6px #797979;
 	cursor: pointer;
 	top:11px;
+}
+
+
+
+
+
+
+
+
+/******** GAME ROOM *******/
+.opBoard, .currBoard{
+	display: block;
+}
+
+.game-grid{
+}
+
+.game-grid table {
+	empty-cells: show;
+}
+
+.game-grid table{
+	border-collapse: collapse;
+}
+
+.game-grid table tr td.innerCell { 
+	border: 1px solid black;
+	z-index: 1;
+}
+
+
+.game-grid table tr td {
+	width: 60px;
+	height: 60px;
+}
+
+.outerSquare {
+	text-align: center;
+}
+
+.no-action:hover{
+	background-color: #4F4C4C;
 }
 
 
