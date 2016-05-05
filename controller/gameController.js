@@ -102,12 +102,19 @@ module.exports = {
 			if(userID.toString() == game.User1._id.toString()){
 				myConfig = game.BoatConfig1;
 				myMiss = game.Miss1;
-				myHits = game.BoatConfig2.map(function(config){ return config.Hits});
+				myHits = [];
+				game.BoatConfig2.forEach(function(config){
+					myHits.push(config.Hits);
+				});
 				opMiss = game.Miss2;
 				opHits = myConfig.filter(function(config) {return config.Hits});
 			}else if(userID.toString() == game.User2._id.toString()){
 				myConfig = game.BoatConfig2;
-				myHits = game.BoatConfig1.map(function(config){ return config.Hits});
+				myHits = [];
+				game.BoatConfig1.forEach(function(config){
+					if(config.Hits.length > 0)
+						myHits.push(config.Hits);
+				});
 				myMiss = game.Miss2;
 				opMiss = game.Miss1;
 				opHits = myConfig.filter(function(config) {return config.Hits});

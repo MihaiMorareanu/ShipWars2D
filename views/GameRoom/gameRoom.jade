@@ -4,9 +4,9 @@ block head-content
 	script.
 		window.onload = function(){
 		
-			var currUser = '#{user.Username}';
-			var roomID = '#{roomID}';
-			var masterConfig = JSON.parse($('<textarea/>').html('#{MasterConfig}').text());
+			window.currUser = '#{user.Username}';
+			window.roomID = '#{roomID}';
+			var masterConfig = JSON.parse($('<textarea/>').html('#{MasterConfig}').text()).MasterConfig;
 			
 
 			/**** OTHERS ********/
@@ -14,23 +14,119 @@ block head-content
 
 
 			/*** SOCKET HANDLERS ********/
-	
+			socket.on('boad:hit', boatHit);
+			
+			socket.on('boad:miss', boatMiss);
+
+
 			/** FUNCTIONS ********/
 			function initialSetup(masterConfig){
-				console.log("Master config: " + JSON.stringify(masterConfig));
-
-				var opGrid = document.getElementsByClassName('opBoard')[0];
-				var myBoard = document.getElementsByClassName('currBoard')[0];
+				var opGridContainer = document.getElementsByClassName('opoBoard')[0];
+				var myBoardContaier = document.getElementsByClassName('currBoard')[0];
 				
-				//TO place my boats
-			}
+				//Place config & hits
+				masterConfig.My.Config.forEach(function(config){
+					var fromHolder = config.From.split("-").map(function(elem){ return parseInt(elem)}); 
+					var toHolder = config.To.split("-").map(function(elem){ return parseInt(elem)}); 
+					
+					if(fromHolder[0] == toHolder[0]){
+						
+						//Vertical orientation
+						var verticalRows = [].slice.call(document.getElementsByClassName('currBoard')[0].getElementsByTagName('tr'));
+						verticalRows = verticalRows.filter(function(row, idx){return idx >= fromHolder[1] && idx <= toHolder[1]});
 
+						verticalRows.forEach(function(row, idxVertical){
+							var cell = row.getElementsByTagName('TD')[fromHolder[0]];
+							cell.classList.add('registered-cell');
+							
+							if(config.Hits.indexOf(fromHolder[0] +"-"+(parseInt(fromHolder[1])+idxVertical)) != -1)
+								cell.classList.add('red-back');
+						});
+					}else{
+
+						//horizontal orientation
+						var horizontalRows = [].slice.call(document.getElementsByClassName('currBoard')[0].getElementsByTagName('tr'));
+						horizontalRows = horizontalRows.filter(function(row, idx){return idx == fromHolder[1]});
+						
+						[].slice.call(horizontalRows[0].getElementsByTagName('TD')).forEach(function(cell, idx){
+							if( idx >= fromHolder[0] && idx <= toHolder[0]){
+								cell.classList.add('registered-cell');
+
+								if(config.Hits.indexOf(idx+"-"+toHolder[1]) != -1)
+									cell.classList.add('red-back');	
+							}
+						});
+					}
+				});
+
+				//Place miss on currUser board
+				var opMiss = masterConfig.Op.Miss;
+				if(opMiss.length > 0){
+					[].slice.call(myBoardContaier.getElementsByTagName('TR')).forEach(function(row, rowIdx){
+						[].slice.call(row.getElementsByTagName('TD')).forEach(function(col, colIdx){
+							if(opMiss.indexOf(colIdx+"-"+rowIdx) != -1)
+								col.classList.add('orange-back');
+						});
+					});
+				}
+
+				//Place miss and hits on oponent screen
+				var hitArr = masterConfig.My.Hits.map(function(hit){return ""+hit;});
+				var missArr = masterConfig.My.Miss;
+				
+				[].slice.call(opGridContainer.getElementsByTagName('TR')).forEach(function(row, rowIdx){
+					[].slice.call(row.getElementsByTagName('TD')).forEach(function(col, colIdx){
+						if(hitArr.indexOf(colIdx+"-"+rowIdx) != -1){
+							col.classList.add('green-back');
+						}
+						else if(missArr.indexOf(colIdx+"-"+rowIdx) != -1)
+							col.classList.add('orange-back');
+					});
+				});
+			}
+		}
+
+
+		function shot(){
+			var elem = event.target;
+			var coordHolder = getCellCoord(elem);
+
+			socket.emit("boat:shot", {roomID: window.roomID, currUser: window.currUser, coord: coordHolder.col+"-"+coordHolder.row});
+		}
+
+		function getCellCoord(cell){
+			var colIdx = 0;
+			var rowIdx = 0;
+			var row = cell.parentNode;	
+
+			while((cell = cell.previousSibling) != null){
+				++colIdx;
+			}
+			
+			
+
+			while((row = row.previousSibling) != null){
+				++rowIdx;
+			}
+			
+			return {row: rowIdx, col: colIdx};
+		}
+
+		function getCellFromCoord(){
+		}
+		
+		function boatHit(data){
+			console.log("Boat hit: "+JSON.stringify(data));
+		}
+
+		function boatMiss(data){
+			console.log("Boat miss: "+JSON.stringify(data));
 		}
 
 
 block main-content
 	center
-		.opBoard
+		.opoBoard
 			h3 Opponent board (Hit/Miss)
 			.game-grid
 				table
@@ -44,11 +140,11 @@ block main-content
 						else if idx2 == 0
 							td.outerSquare= idx1
 						else 
-							td.innerCell.no-action &nbsp;
+							td.innerCell.no-action(onclick="shot()") &nbsp;
 						- }
 					- }
 
-		br			
+		br		
 		br
 
 		.currBoard
