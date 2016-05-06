@@ -71,18 +71,39 @@ block head-content
 				}
 
 				//Place miss and hits on oponent screen
-				var hitArr = masterConfig.My.Hits.map(function(hit){return ""+hit;});
-				var missArr = masterConfig.My.Miss;
+				var hitArr = [];
+				masterConfig.My.Hits.forEach(function(elem){
+					hitArr.push(""+elem);
+				});
+				var missArr = [];
+				masterConfig.My.Miss.forEach(function(elem){
+					missArr.push(""+elem);
+				});
 				
+				console.log("Hits: " + hitArr);
+				console.log("Miss: " + missArr);
+
 				[].slice.call(opGridContainer.getElementsByTagName('TR')).forEach(function(row, rowIdx){
 					[].slice.call(row.getElementsByTagName('TD')).forEach(function(col, colIdx){
-						if(hitArr.indexOf(colIdx+"-"+rowIdx) != -1){
+						console.log("ColIdx: "+colIdx+"-"+rowIdx + " IndexOf: " + hitArr.indexOf(colIdx+"-"+rowIdx));
+						var temp = ""+colIdx+"-"+rowIdx;
+						if(indexOf2(hitArr, temp) != -1){
 							col.classList.add('green-back');
-						}
-						else if(missArr.indexOf(colIdx+"-"+rowIdx) != -1)
+						
+						}else if(indexOf2(missArr, temp) != -1){
 							col.classList.add('orange-back');
+						}
 					});
 				});
+			}
+
+			function indexOf2(array, elem){
+				for(var idx=0; idx < array.length; idx++ ){
+					if(array[idx] == elem){
+						return idx;
+					}
+				}
+				return -1;
 			}
 		}
 
@@ -114,11 +135,51 @@ block head-content
 		}
 		
 		function boatHit(data){
-			console.log("Boat hit: "+JSON.stringify(data));
+			//Sample {opUser: '', currUser: '', Coord: ''}
+			//- console.log("Hit: " + JSON.stringify(data));
+
+			var coordHolder = data.Coord.split('-').map(function(elem){return parseInt(elem);})
+			var rowIdx = coordHolder[1];
+			var colIdx = coordHolder[0];
+			
+			if(data.currUser == window.currUser){
+				var opBoard = document.getElementsByClassName("opoBoard")[0];
+				var cell = getCellFromCoordinates(opBoard, rowIdx, colIdx);
+				//- console.log("Cell: " + cell);
+				cell.classList.add('green-back');
+
+			}else if(data.opUser == window.currUser){
+
+				var myBoard = document.getElementsByClassName("currBoard")[0];
+				var cell = getCellFromCoordinates(myBoard, rowIdx, colIdx);
+				cell.classList.add('red-back');
+			}
 		}
 
 		function boatMiss(data){
-			console.log("Boat miss: "+JSON.stringify(data));
+			//Sample {opUser: '', currUser: '', Coord: ''}
+			//- console.log("Miss: " + JSON.stringify(data));
+
+			var coordHolder = data.Coord.split('-').map(function(elem){return parseInt(elem);})
+			var rowIdx = coordHolder[1];
+			var colIdx = coordHolder[0];
+			
+			if(data.currUser == window.currUser){
+				var opBoard = document.getElementsByClassName("opoBoard")[0];
+				var cell = getCellFromCoordinates(opBoard, rowIdx, colIdx);
+				cell.classList.add('orange-back');
+
+			}else if(data.opUser == window.currUser){
+
+				var myBoard = document.getElementsByClassName("currBoard")[0];
+				var cell = getCellFromCoordinates(myBoard, rowIdx, colIdx);
+				cell.classList.add('orange-back');
+			}	
+		}
+
+		function getCellFromCoordinates(container, row, col){
+			var row =  container.getElementsByTagName("TR")[row];
+			return row.getElementsByTagName("TD")[col];
 		}
 
 
