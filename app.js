@@ -33,9 +33,11 @@ if(process.argv[2] && typeof process.argv[2] != "undefined")
     app.set('env', 'development');
 
 mongoose.connect('mongodb://'+ config.DBUSER +':'+ config.DBPASS +'@'+ config.DBHOST +':'+ config.DBPORT +'/'+ config.DBNAME);
+// mongoose.connect("mongodb://localhost/shipwars");
 mongoose.connection.once('open', function(){
 
   console.log('<MONGOOSE> Connected to : ' + 'mongodb://'+ config.DBUSER +':'+ config.DBPASS +'@'+ config.DBHOST +':'+ config.DBPORT +'/'+ config.DBNAME);
+  // console.log('<MONGOOSE> Connected to localhost mongodb');
 });
 
 

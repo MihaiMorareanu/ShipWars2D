@@ -14,9 +14,9 @@ block head-content
 
 
 			/*** SOCKET HANDLERS ********/
-			socket.on('boad:hit', boatHit);
+			socket.on('boat:hit', boatHit);
 			
-			socket.on('boad:miss', boatMiss);
+			socket.on('boat:miss', boatMiss);
 
 
 			/** FUNCTIONS ********/
@@ -103,8 +103,6 @@ block head-content
 				++colIdx;
 			}
 			
-			
-
 			while((row = row.previousSibling) != null){
 				++rowIdx;
 			}
