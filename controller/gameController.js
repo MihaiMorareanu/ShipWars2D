@@ -96,7 +96,8 @@ module.exports = {
 		.findOne({GameRoom: savedRoomID})
 		.populate("User1 User2")
 		.then(function(game){
-			if(game == null || typeof game == "undefined") throw new Error("Game isn't found");
+			if(game == null || typeof game == "undefined") 
+				throw new Error("Game isn't found");
 			var myConfig = null, myHits = null, myMiss = null, opMiss = null, opHits = null;
 			
 			if(userID.toString() == game.User1._id.toString()){
@@ -123,6 +124,8 @@ module.exports = {
 			var toSend = {MasterConfig: null};
 			var tempHolder = {MasterConfig: {My: {Hits: myHits, Config: myConfig, Miss: myMiss}, Op: {Hits: opHits, Miss: opMiss}}};
 			toSend.MasterConfig = JSON.stringify(tempHolder);
+
+			console.log("To send MasterConfig: " + toSend.MasterConfig);
 
 			res.render('GameRoom/gameRoom', toSend);
 

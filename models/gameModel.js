@@ -29,7 +29,12 @@ var gameSchema = new Schema({
 	// If User2 miss when attack User1 then miss is registered in Miss2
 	Miss2: [String],
 	GameRoom: String,
-	startTime: String 
+	startTime: String,
+	Turn: {
+		type: Number,
+		min: 1,
+		max: 2
+	}
 });
 
 module.exports = mongoose.model('Game', gameSchema);
