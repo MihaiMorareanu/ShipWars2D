@@ -17,7 +17,7 @@ var users = require('./routes/users');
 var app = express();
 
 /*Start listen*/
-var server = app.listen(config.PORT||5000);
+var server = app.listen(process.env.PORT||config.PORT);
 console.log("<APP> Start listening on port: " + config.PORT);
 
 
