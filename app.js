@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var config = require('./config/config');
 var session = require('express-session');
+var MongoStore = require('connect-mongo')(session);
 var mongoose = require('mongoose');
 var socketHandler = require('./lib/Helpers/socket-handler');
 
@@ -57,10 +58,11 @@ app.use(session({
   secret: 'secret-key',
   resave: true,
   rolling: true,
-  cookie: { 
-      maxAge: 10 * 60 * 1000 //min * sec * milisec = 10 min
-  }
+  store: new MongoStore({mongooseConnection: mongoose.connection,
+                          ttl: 10 * 60 * 1000
+                        })
 }));
+
 
 /*Set user on session (if exist)*/
 app.use(function(req, res, next){
