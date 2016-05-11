@@ -8,6 +8,7 @@ var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 var mongoose = require('mongoose');
 var socketHandler = require('./lib/Helpers/socket-handler');
+var os = require('os');
 
 
 /*ROUTES*/
@@ -69,7 +70,10 @@ app.use(function(req, res, next){
     console.log("User: " + req.session.user);
     if(req.session.user)
         res.locals.user = req.session.user;
-    
+
+    res.locals.hostname = os.hostname();
+    res.locals.port = server.address().port;
+  
     next();
 });
 
