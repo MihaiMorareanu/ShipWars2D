@@ -17,7 +17,7 @@ var users = require('./routes/users');
 var app = express();
 
 /*Start listen*/
-var server = app.listen(config.PORT);
+var server = app.listen(config.PORT||5000);
 console.log("<APP> Start listening on port: " + config.PORT);
 
 
@@ -73,6 +73,14 @@ app.use(function(req, res, next){
     next();
 });
 
+
+//For avoidong Heroku $PORT error
+app.get('/', function(request, response) {
+    var result = 'App is running'
+    response.send(result);
+}).listen(app.get('port'), function() {
+    console.log('App is running, server is listening on port ', app.get('port'));
+});
 
 
 /* ROUTER SET */
