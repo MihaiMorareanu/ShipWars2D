@@ -5,16 +5,20 @@ html
 		link(rel='stylesheet', href='/jqueryUI/jquery-ui.min.css')
 		script(src="/js/jquery-1.12.3.min.js")
 		script(src="/jqueryUI/jquery-ui.min.js")
-		script(src="https://cdn.socket.io/socket.io-1.4.5.js")
+		script(src="http://localhost:3000/socket.io/socket.io.js")
 		script.
-			var socket = io.connect("https://#{hostname}:#{port}");
-			//
+			var socket = io.connect("http://localhost:3000");
 		
 		block head-content
 
 body
 	.title-container
 		center
-			a(href="/" style="color: red; font-size: 25px; font-weight: bold;") ShipWars2D
+			a(href="/", style="color: red; font-size: 25px; font-weight: bold;") ShipWars2D
+			a.float-right(href="/users/logout", style="color: red; font-size: 20px;") LogOut
+			if user
+				span(style="color: blue;font-size: 20px;").float-right #{user.Points} |
+				span(style="color: blue;font-size: 20px;").float-right #{user.Username} |
+
 	.main-container
 		block main-content

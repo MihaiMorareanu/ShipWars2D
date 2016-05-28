@@ -34,7 +34,7 @@ block head-content
 
 			socket.on('gameStatus', gameStatus);
 
-
+			socket.on('opponentDisconnect', opponentDisconnect);
 
 			/***** DRAGGABLE & DROPPABLE ******/
 			$('.draggable').draggable({helper: 'clone'});
@@ -561,6 +561,12 @@ block head-content
 			}
 		}
 		
+		function opponentDisconnect(data){
+			if(data.user == window.currUser){
+				alert('Oponentul a parasit meciul! Ai castigat 50 de puncte! Puncte : ' + data.points);
+				window.location = "/";
+			}
+		}
 
 block main-content
 	#wrapper

@@ -37,4 +37,27 @@ var gameSchema = new Schema({
 	}
 });
 
+
+/*Before save, encrypt password*/
+gameSchema.pre('save', function(next){
+        var game = this;
+
+        game.BoatConfig1.forEach(analizeAndReduce);
+        game.BoatConfig2.forEach(analizeAndReduce);
+
+        console.log("<gameModel - presave> Finsih presave !");
+        next();
+    });
+
+function analizeAndReduce(boatConfig){
+	var unique = [];
+	
+	boatConfig.Hits.map(function(currHit){
+		if(unique.indexOf(currHit) == -1)
+			unique.push(currHit);
+	});
+	
+	boatConfig.Hits = unique;
+}
+
 module.exports = mongoose.model('Game', gameSchema);

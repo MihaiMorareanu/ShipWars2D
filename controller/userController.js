@@ -83,5 +83,19 @@ module.exports = {
 				res.redirect('/');			
 			}
 		});
+	},
+	logout: function(req, res){
+		var user = req.session.user;
+
+		User
+		.update({_id: user._id}, {isAvailable: false})
+		.then(function(updateRes){
+			req.session.destroy();
+			res.statusCode = 307;
+			res.redirect('/');
+		})
+		.catch(function(err){
+			console.log("<userController - logout> Error: " + err.message);
+		});
 	}
 };

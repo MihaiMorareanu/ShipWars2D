@@ -4,10 +4,13 @@ var Game = require('../controller/gameController');
 var router = express.Router();
 
 
+/*GET - Login*/
 router.get('/login', function(req, res){
 	res.render('login');
 });
 
+
+/*GET - Register*/
 router.get('/register', function(req, res){
 	res.render('register');
 });
