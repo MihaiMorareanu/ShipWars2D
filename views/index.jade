@@ -51,7 +51,10 @@ block main-content
 
 					for(var idx = 0; idx < userArr.length; idx++){
 						if(listContainsElem(players, userArr[idx])){
-							var currNode = playersElem[idx];
+							var currNode = playersElem.filter(function(elems){
+								return elems.textContent == userArr[idx];
+							})[0];
+
 							if(invites && invites.indexOf(userArr[idx]) != -1 ){
 								if(!currNode.classList.contains('invite-sent'))
 									currNode.classList.add('invite-sent');

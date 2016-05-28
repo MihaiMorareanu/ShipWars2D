@@ -102,8 +102,8 @@ block head-content
 		}
 
 
-		function shot(){
-			var elem = event.target;
+		function shot(currElem){
+			var elem =  currElem || event.target;
 			var coordHolder = getCellCoord(elem);
 
 			socket.emit("boat:shot", {roomID: window.roomID, currUser: window.currUser, coord: coordHolder.col+"-"+coordHolder.row});
@@ -226,7 +226,7 @@ block main-content
 						else if idx2 == 0
 							td.outerSquare= idx1
 						else 
-							td.innerCell.no-action(onclick="shot()") &nbsp;
+							td.innerCell.no-action(onclick="shot(this)") &nbsp;
 						- }
 					- }
 
